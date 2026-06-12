@@ -1,6 +1,80 @@
+:root {
+  --face-width: 28vw;
+  --face-height: 60vh;
+  --face-top: 52%;
+}
+
 body {
-    margin: 0;
-    background: black;
-    color: white;
-    font-family: Arial, sans-serif;
-  }
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.screen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#webcam {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.dark-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+
+  mask: radial-gradient(
+    ellipse calc(var(--face-width) / 2) calc(var(--face-height) / 2)
+    at 50% var(--face-top),
+    transparent 0%,
+    transparent 99%,
+    black 100%
+  );
+
+  -webkit-mask: radial-gradient(
+    ellipse calc(var(--face-width) / 2) calc(var(--face-height) / 2)
+    at 50% var(--face-top),
+    transparent 0%,
+    transparent 99%,
+    black 100%
+  );
+}
+
+.headline {
+  position: absolute;
+  top: 3vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+  z-index: 2;
+}
+
+.headline h1 {
+  margin: 0;
+  font-size: 4vw;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.face-window {
+  position: absolute;
+  top: var(--face-top);
+  left: 50%;
+  width: var(--face-width);
+  height: var(--face-height);
+  transform: translate(-50%, -50%);
+
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  z-index: 2;
+}
