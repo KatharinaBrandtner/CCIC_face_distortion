@@ -11,6 +11,13 @@ import {
 } from './faceTracking.js';
 
 import {
+  setupMoodDetection,
+  detectMoodOnce,
+  isMoodDetectionReady,
+  resetMoodDetection,
+} from './moodDetection.js';
+
+import {
   drawCamera,
   drawFacePoints,
   drawStatus,
@@ -30,13 +37,24 @@ document.querySelector('#app').innerHTML = `
   </section>
 `;
 
+let appState = 'loading';
+// loading | searching | analyzing | manipulating
+
+let lockedMood = null;
+let moodAnalyzed = false;
+
 const sketch = (p) => {
   p.setup = async () => {
     const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
     canvas.parent('p5-container');
     p.pixelDensity(1);
 
+    appState = 'loading';
+
     await setupFaceTracking();
+    await setupMoodDetection();
+
+    appState = 'searching';
   };
 
   p.draw = () => {
@@ -46,23 +64,76 @@ const sketch = (p) => {
     const video = getVideo();
     const videoSize = getVideoSize();
 
-    // Kamera noch nicht bereit
+    if (appState === 'loading') {
+      drawStatus(p, 'System lädt...');
+      return;
+    }
+
     if (!video || video.readyState < 2) {
       drawStatus(p, 'Kamera lädt...');
       return;
     }
 
-    // Kamera IMMER zeichnen
+    // Kamera immer zeichnen
     drawCamera(p, video, videoSize);
 
-    // FacePoints nur zeichnen, wenn Gesicht da ist
-    if (isFaceTrackingReady() && hasFace()) {
-      const faces = getFaces();
-
-      drawFacePoints(p, faces[0], videoSize);
-      drawStatus(p, 'Gesicht erkannt!');
-    } else {
+    if (!isFaceTrackingReady() || !hasFace()) {
       drawStatus(p, 'Kein Gesicht erkannt');
+      return;
+    }
+
+    const faces = getFaces();
+    const face = faces[0];
+    drawFacePoints(p, face, videoSize);
+
+    // Schritt 1: Gesicht gefunden, Mood noch nicht analysiert
+    if (appState === 'searching' && !moodAnalyzed && isMoodDetectionReady()) {
+      appState = 'analyzing';
+      moodAnalyzed = true;
+
+      detectMoodOnce(video).then((mood) => {
+        lockedMood = mood;
+        appState = 'manipulating';
+
+        console.log('Mood locked:', lockedMood);
+
+        // Später hier deine Manipulation starten:
+        // startManipulation(lockedMood);
+      });
+
+      drawStatus(p, 'Mood wird analysiert...');
+      return;
+    }
+    if (appState === 'analyzing') {
+      drawStatus(p, 'Mood wird analysiert...');
+      return;
+    }
+
+    // Schritt 3: Mood ist eingefroren
+    if (appState === 'manipulating' && lockedMood) {
+      const percent = Math.round(lockedMood.score * 100);
+
+      drawStatus(
+        p,
+        `Mood locked: ${lockedMood.label} ${percent}%`
+      );
+
+      // Später hier Manipulation zeichnen:
+      // drawManipulation(p, face, videoSize, lockedMood);
+
+      return;
+    }
+  };
+
+  p.keyPressed = () => {
+    if (p.key === 'r' || p.key === 'R') {
+      appState = 'searching';
+      lockedMood = null;
+      moodAnalyzed = false;
+
+      resetMoodDetection();
+
+      console.log('Reset: neue Mood-Erkennung möglich');
     }
   };
 
