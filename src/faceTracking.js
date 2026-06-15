@@ -54,6 +54,30 @@ export async function setupFaceTracking(p) {
 
   faceMesh = await loadFaceMesh(options);
   modelReady = true;
+
+  console.log("===== FACEMESH =====");
+console.log(faceMesh);
+
+console.log(
+  "typeof getTriangles:",
+  typeof faceMesh?.getTriangles
+);
+
+if (typeof faceMesh?.getTriangles === "function") {
+  const triangles = faceMesh.getTriangles();
+
+  console.log(
+    "Triangles:",
+    triangles.length
+  );
+
+  console.log(
+    "Erstes Triangle:",
+    triangles[0]
+  );
+}
+
+console.log("====================");
   
   faceMesh.detectStart(video, gotFaces);
   detectionStarted = true;
@@ -139,4 +163,8 @@ export function isFaceTrackingReady() {
 
 export function hasFace() {
   return faces.length > 0;
+}
+
+export function getFaceMesh() {
+  return faceMesh;
 }

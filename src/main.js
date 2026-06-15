@@ -1,7 +1,24 @@
 import './style.css';
 import p5 from 'p5';
-import {setupFaceTracking,getVideo,getFaces,getVideoSize,isFaceTrackingReady,hasFace,} from './faceTracking.js';
-import {getCoverRect, drawCamera, drawFacePoints, drawStatus} from './drawing.js';
+
+import {
+  setupFaceTracking,
+  getVideo,
+  getFaces,
+  getVideoSize,
+  isFaceTrackingReady,
+  hasFace,
+  getFaceMesh
+} from './faceTracking.js';
+
+import {
+  getCoverRect,
+  drawCamera,
+  drawFacePoints,
+  drawStatus
+} from './drawing.js';
+
+import { drawFaceMeshTexture } from './faceWarp.js';
 
 document.querySelector('#app').innerHTML = `
   <section class="screen">
@@ -18,9 +35,18 @@ document.querySelector('#app').innerHTML = `
 `;
 
 const sketch = (p) => {
+
+  let debugPrinted = false;
+
   p.setup = async () => {
-    const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+
+    const canvas = p.createCanvas(
+      window.innerWidth,
+      window.innerHeight
+    );
+
     canvas.parent('p5-container');
+
     p.pixelDensity(1);
 
     try {
@@ -31,6 +57,7 @@ const sketch = (p) => {
   };
 
   p.draw = () => {
+
     p.background(0);
 
     const video = getVideo();
@@ -40,10 +67,23 @@ const sketch = (p) => {
       return;
     }
 
-    const { width: videoW, height: videoH } = getVideoSize();
-    const cameraRect = getCoverRect(videoW, videoH, p.width, p.height);
+    const {
+      width: videoW,
+      height: videoH
+    } = getVideoSize();
 
-    drawCamera(p, video, cameraRect);
+    const cameraRect = getCoverRect(
+      videoW,
+      videoH,
+      p.width,
+      p.height
+    );
+
+    drawCamera(
+      p,
+      video,
+      cameraRect
+    );
 
     if (!isFaceTrackingReady()) {
       drawStatus(p, 'FaceMesh lädt...');
@@ -52,17 +92,86 @@ const sketch = (p) => {
 
     const faces = getFaces();
 
+    const faceMesh = getFaceMesh();
+
+    // NUR EINMAL AUSGEBEN
+    if (!debugPrinted) {
+
+      console.log('====================');
+      console.log('Faces:', faces);
+      console.log('Anzahl Faces:', faces.length);
+
+      console.log('FaceMesh Objekt:');
+      console.log(faceMesh);
+
+      console.log(
+        'typeof getTriangles:',
+        typeof faceMesh?.getTriangles
+      );
+
+      console.log('====================');
+
+      debugPrinted = true;
+    }
+
     if (!hasFace()) {
-      drawStatus(p, 'Kein Gesicht erkannt');
+
+      drawStatus(
+        p,
+        'Kein Gesicht erkannt'
+      );
+
       return;
     }
 
-    drawFacePoints(p, faces, cameraRect, videoW, videoH);
-    drawStatus(p, 'Gesicht erkannt');
+    // TESTWEISE PUNKTE ZEICHNEN
+    drawFacePoints(
+      p,
+      faces,
+      cameraRect,
+      videoW,
+      videoH
+    );
+
+    // TRIANGLE TEST
+    if (
+      faceMesh &&
+      typeof faceMesh.getTriangles === 'function'
+    ) {
+
+      console.log('getTriangles vorhanden');
+
+      const triangles =
+        faceMesh.getTriangles();
+
+      console.log(
+        'Anzahl Triangles:',
+        triangles.length
+      );
+
+      drawFaceMeshTexture(
+        p,
+        faces[0],
+        triangles,
+        video,
+        cameraRect,
+        videoW,
+        videoH
+      );
+    }
+
+    drawStatus(
+      p,
+      'Gesicht erkannt'
+    );
   };
 
   p.windowResized = () => {
-    p.resizeCanvas(window.innerWidth, window.innerHeight);
+
+    p.resizeCanvas(
+      window.innerWidth,
+      window.innerHeight
+    );
   };
 };
 
