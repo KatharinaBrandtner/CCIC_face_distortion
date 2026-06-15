@@ -1,7 +1,20 @@
 import './style.css';
 import p5 from 'p5';
-import {setupFaceTracking,getVideo,getFaces,getVideoSize,isFaceTrackingReady,hasFace,} from './faceTracking.js';
-import {getCoverRect, drawCamera, drawFacePoints, drawStatus} from './drawing.js';
+
+import {
+  setupFaceTracking,
+  getVideo,
+  getFaces,
+  getVideoSize,
+  isFaceTrackingReady,
+  hasFace,
+} from './faceTracking.js';
+
+import {
+  drawCamera,
+  drawFacePoints,
+  drawStatus,
+} from './drawing.js';
 
 document.querySelector('#app').innerHTML = `
   <section class="screen">
@@ -23,42 +36,34 @@ const sketch = (p) => {
     canvas.parent('p5-container');
     p.pixelDensity(1);
 
-    try {
-      await setupFaceTracking(p);
-    } catch (err) {
-      console.error('Startfehler:', err);
-    }
+    await setupFaceTracking();
   };
 
   p.draw = () => {
+    p.clear();
     p.background(0);
 
     const video = getVideo();
+    const videoSize = getVideoSize();
 
-    if (!video) {
-      drawStatus(p, 'Webcam lädt...');
+    // Kamera noch nicht bereit
+    if (!video || video.readyState < 2) {
+      drawStatus(p, 'Kamera lädt...');
       return;
     }
 
-    const { width: videoW, height: videoH } = getVideoSize();
-    const cameraRect = getCoverRect(videoW, videoH, p.width, p.height);
+    // Kamera IMMER zeichnen
+    drawCamera(p, video, videoSize);
 
-    drawCamera(p, video, cameraRect);
+    // FacePoints nur zeichnen, wenn Gesicht da ist
+    if (isFaceTrackingReady() && hasFace()) {
+      const faces = getFaces();
 
-    if (!isFaceTrackingReady()) {
-      drawStatus(p, 'FaceMesh lädt...');
-      return;
-    }
-
-    const faces = getFaces();
-
-    if (!hasFace()) {
+      drawFacePoints(p, faces[0], videoSize);
+      drawStatus(p, 'Gesicht erkannt!');
+    } else {
       drawStatus(p, 'Kein Gesicht erkannt');
-      return;
     }
-
-    drawFacePoints(p, faces, cameraRect, videoW, videoH);
-    drawStatus(p, 'Gesicht erkannt');
   };
 
   p.windowResized = () => {

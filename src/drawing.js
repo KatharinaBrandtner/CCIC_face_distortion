@@ -1,59 +1,61 @@
-// zeichent nur Kamera, Gesichtspunkte und Status
-export function getCoverRect(srcW, srcH, dstW, dstH) {
-    const srcRatio = srcW / srcH;
-    const dstRatio = dstW / dstH;
+export function getCoverRect(canvasW, canvasH, videoW, videoH) {
+    const scale = Math.max(canvasW / videoW, canvasH / videoH);
   
-    let w;
-    let h;
-    let x;
-    let y;
+    const w = videoW * scale;
+    const h = videoH * scale;
   
-    if (dstRatio > srcRatio) {
-      w = dstW;
-      h = dstW / srcRatio;
-      x = 0;
-      y = (dstH - h) / 2;
-    } else {
-      h = dstH;
-      w = dstH * srcRatio;
-      x = (dstW - w) / 2;
-      y = 0;
-    }
+    const x = (canvasW - w) / 2;
+    const y = (canvasH - h) / 2;
   
     return { x, y, w, h };
   }
+  export function drawCamera(p, video, videoSize) {
+    const videoEl = video?.elt || video;
   
-  export function drawCamera(p, video, rect) {
-    p.push(); // Speichere den aktuellen Zustand der Transformationen
-    p.translate(rect.x + rect.w, rect.y); // Verschiebe den Ursprung
-    p.scale(-1, 1); // Spiegele die x-Achse
-    p.image(video, 0, 0, rect.w, rect.h); // Zeichne das Video
-    p.pop();
+    if (!videoEl || !(videoEl instanceof HTMLVideoElement)) {
+      console.warn('drawCamera: kein gültiges Video-Element:', videoEl);
+      return;
+    }
+  
+    if (videoEl.readyState < 2) {
+      return;
+    }
+  
+    const rect = getCoverRect(
+      p.width,
+      p.height,
+      videoSize.width,
+      videoSize.height
+    );
+  
+    // statt p.image(), direkter Canvas drawImage:
+    p.drawingContext.drawImage(
+      videoEl,
+      rect.x,
+      rect.y,
+      rect.w,
+      rect.h
+    );
   }
-  export function drawFacePoints(p, faces, rect, videoW, videoH) {
-    for (const face of faces) {
-      const keypoints = face.keypoints || [];
+
+  export function drawFacePoints(p, face, videoSize) {
+    const rect = getCoverRect(
+      p.width,
+      p.height,
+      videoSize.width,
+      videoSize.height
+    );
   
-      for (const pt of keypoints) {
-        const px = pt.x ?? pt[0];
-        const py = pt.y ?? pt[1];
+    p.noStroke();
+    p.fill(0, 255, 0);
   
-        if (px == null || py == null) continue;
+    for (const point of face.keypoints) {
+      const x = rect.x + (point.x / videoSize.width) * rect.w;
+      const y = rect.y + (point.y / videoSize.height) * rect.h;
   
-        // Spiegel die x-Koordinate relativ zur Breite des Rechtecks
-        const mirroredPx = videoW - px;
-  
-        const x = rect.x + (mirroredPx / videoW) * rect.w;
-        const y = rect.y + (py / videoH) * rect.h;
-  
-        // Zeichne den Punkt
-        p.fill('lightgreen');
-        p.noStroke();
-        p.ellipse(x, y, 5, 5);
-      }
+      p.circle(x, y, 3);
     }
   }
-  
   export function drawStatus(p, text) {
     p.noStroke();
     p.fill(255);

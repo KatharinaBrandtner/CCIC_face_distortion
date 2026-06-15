@@ -1,125 +1,92 @@
-//hier wird ml5 geladen und das gesicht getrackt
-
-const ml5Module = await import('ml5');
-const ml5 = ml5Module.default || ml5Module;
-
-// WebGPU umgehen, falls ml5 diese Funktion anbietet
-if (typeof ml5.setBackend === 'function') {
-  await ml5.setBackend('webgl');
-}
-
-let video;
+let camera;
+let videoElement;
 let faceMesh;
+
 let faces = [];
 
-let videoW = 640;
-let videoH = 480;
+let videoWidth = 1280;
+let videoHeight = 720;
 
-let videoReady = false;
+let cameraReady = false;
 let modelReady = false;
-let detectionStarted = false;
+let firstResultReceived = false;
 
-const options = {
-  maxFaces: 1,
-  refineLandmarks: false,
-  flipHorizontal: false,
-};
+export async function setupFaceTracking() {
+  if (!window.FaceMesh || !window.Camera) {
+    throw new Error(
+      'MediaPipe wurde nicht geladen. Prüfe die Script-Tags in index.html.'
+    );
+  }
 
-export async function setupFaceTracking(p) {
-  console.log('Starte Webcam...');
+  videoElement = document.createElement('video');
+  videoElement.style.display = 'none';
+  videoElement.setAttribute('playsinline', 'true');
+  videoElement.muted = true;
+  document.body.appendChild(videoElement);
 
-  video = p.createCapture({
-    video: {
-      width: { ideal: 640 },
-      height: { ideal: 480 },
-      facingMode: 'user',
-    },
-    audio: false,
+  faceMesh = new window.FaceMesh({
+    locateFile: (file) => `/mediapipe/face_mesh/${file}`,
   });
 
-  video.hide();
+  faceMesh.setOptions({
+    maxNumFaces: 1,
+    refineLandmarks: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5,
+  });
 
-  const videoElement = video.elt;
-  videoElement.muted = true;
-  videoElement.playsInline = true;
+  faceMesh.onResults(handleResults);
 
-  await waitForVideo(videoElement);
+  camera = new window.Camera(videoElement, {
+    onFrame: async () => {
+      if (!videoElement || !faceMesh) return;
+      await faceMesh.send({ image: videoElement });
+    },
+    width: 1280,
+    height: 720,
+  });
 
-  videoW = videoElement.videoWidth || 640;
-  videoH = videoElement.videoHeight || 480;
-  videoReady = true;
+  await camera.start();
 
-  console.log('Video bereit:', videoW, videoH);
-  console.log('Lade FaceMesh...');
-
-  faceMesh = await loadFaceMesh(options);
+  cameraReady = true;
   modelReady = true;
-  
-  faceMesh.detectStart(video, gotFaces);
-  detectionStarted = true;
-  
-  console.log('FaceMesh läuft');
+
+  console.log('MediaPipe FaceMesh läuft');
 }
 
-async function loadFaceMesh(faceMeshOptions) {
-    const maybeModel = ml5.faceMesh(faceMeshOptions);
-  
-    const model =
-      maybeModel && typeof maybeModel.then === 'function'
-        ? await maybeModel
-        : maybeModel;
-  
-    if (model.ready && typeof model.ready.then === 'function') {
-      await model.ready;
-    }
-  
-    await waitUntil(() => model.model !== null, 10000);
-  
-    return model;
-  }
-  
-  function waitUntil(condition, timeoutMs = 10000) {
-    return new Promise((resolve, reject) => {
-      const start = performance.now();
-  
-      const check = () => {
-        if (condition()) {
-          resolve();
-          return;
-        }
-  
-        if (performance.now() - start > timeoutMs) {
-          reject(new Error('FaceMesh-Modell wurde nicht rechtzeitig geladen.'));
-          return;
-        }
-  
-        requestAnimationFrame(check);
-      };
-  
-      check();
-    });
-  }
+function handleResults(results) {
+  firstResultReceived = true;
 
-function gotFaces(results) {
-  faces = Array.isArray(results) ? results : [];
-}
+  videoWidth = videoElement.videoWidth || results.image?.width || 1280;
+  videoHeight = videoElement.videoHeight || results.image?.height || 720;
 
-function waitForVideo(videoEl) {
-  return new Promise((resolve) => {
-    const check = () => {
-      if (videoEl.readyState >= 2 && videoEl.videoWidth > 0) {
-        resolve();
-      } else {
-        requestAnimationFrame(check);
-      }
+  const landmarks = results.multiFaceLandmarks || [];
+
+  faces = landmarks.map((landmarkList) => {
+    return {
+      source: 'mediapipe',
+
+      keypoints: landmarkList.map((pt, index) => {
+        return {
+          index,
+          x: pt.x * videoWidth,
+          y: pt.y * videoHeight,
+          z: pt.z || 0,
+        };
+      }),
+
+      raw: landmarkList,
+
+      videoSize: {
+        width: videoWidth,
+        height: videoHeight,
+      },
     };
-
-    check();
   });
 }
 
 export function getVideo() {
-  return video;
+  return videoElement;
 }
 
 export function getFaces() {
@@ -128,13 +95,13 @@ export function getFaces() {
 
 export function getVideoSize() {
   return {
-    width: videoW,
-    height: videoH,
+    width: videoWidth,
+    height: videoHeight,
   };
 }
 
 export function isFaceTrackingReady() {
-  return videoReady && modelReady && detectionStarted;
+  return cameraReady && modelReady && firstResultReceived;
 }
 
 export function hasFace() {
