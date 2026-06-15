@@ -90,7 +90,7 @@ Das Projekt läuft im Browser und verarbeitet aber lokal:
 - CSS
 - JavaScript Modules
 - p5.js
-- ml5.js
+- mediapipe
 - face-api.js
 - Vite
 
