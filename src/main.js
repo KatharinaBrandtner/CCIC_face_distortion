@@ -2,7 +2,7 @@ import './style.css';
 import p5 from 'p5';
 import {setupFaceTracking, getVideo, getFaces, getVideoSize, isFaceTrackingReady,hasFace} from './faceTracking.js';
 import {setupMoodDetection,detectMoodOnce,isMoodDetectionReady,resetMoodDetection} from './moodDetection.js';
-import {drawCamera,drawFacePoints,drawStatus, drawAnalysisOverlay} from './drawing.js';
+import {drawCamera,drawFacePoints,drawStatus, drawAnalysisOverlay,  drawMoodTint, drawMoodResultPanel} from './drawing.js';
 
 document.querySelector('#app').innerHTML = `
   <section class="screen">
@@ -110,14 +110,22 @@ const sketch = (p) => {
       return;
     }
   
-    // Schritt 4: Mood ist eingefroren, Manipulation kann starten
     if (appState === 'manipulating' && lockedMood) {
-      const percent = Math.round(lockedMood.score * 100);
-  
-      drawStatus(
-        p,
-        `Mood locked: ${lockedMood.label} ${percent}%`
-      );
+      const faces = getFaces();
+    
+      // leichte Farbigkeit passend zum Mood
+      drawMoodTint(p, lockedMood);
+    
+      // FaceMesh weiter sichtbar
+      if (faces.length > 0) {
+        drawFacePoints(p, faces[0], videoSize);
+      }
+    
+      // Ergebnis-UI unten
+      drawMoodResultPanel(p, lockedMood);
+    
+      return;
+    }
   
       // später:
       // drawManipulation(p, face, videoSize, lockedMood);
@@ -125,6 +133,5 @@ const sketch = (p) => {
       return;
     }
   };
-}
 
 new p5(sketch)
