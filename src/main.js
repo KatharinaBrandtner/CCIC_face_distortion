@@ -114,7 +114,7 @@ const sketch = (p) => {
       const faces = getFaces();
     
       // leichte Farbigkeit passend zum Mood
-      drawMoodTint(p, lockedMood);
+      drawMoodTint(p, lockedMood, appState);
     
       // FaceMesh weiter sichtbar
       if (faces.length > 0) {
