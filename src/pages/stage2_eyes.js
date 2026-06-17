@@ -17,7 +17,6 @@ import {
 } from "../drawing.js";
 
 import {
-    testWarpAffine,
     warpTriangle,
 } from "../effects/triangleWarp.js";
 
@@ -30,14 +29,11 @@ import {
     ALL_TRIANGLES,
 } from "../triangles/eyeConstants.js";
 
-let tested = false;
-
 new p5((p) => {
     p.setup = async () => {
         p.createCanvas(window.innerWidth, window.innerHeight);
         p.pixelDensity(1);
         await waitForOpenCV();
-        testWarpAffine();
         await setupFaceTracking();
     };
     p.draw = () => {
@@ -49,11 +45,8 @@ new p5((p) => {
             return;
         }
         drawCamera(p, video, videoSize);
-        if (!tested && window.cv) {
-            tested = true;
-        }
         if (!isFaceTrackingReady() || !hasFace()) {
-            drawStatus(p, "Stage 9");
+            drawStatus(p, "Stage 2");
             return;
         }
         const face = getFaces()[0];
@@ -76,12 +69,12 @@ new p5((p) => {
 
             cv.imshow(p.canvas, dstMat);
         } catch (error) {
-            console.error("Error in stage9:", error);
+            console.error("Error in stage2:", error);
         } finally {
             srcMat.delete();
             dstMat.delete();
         }
-        drawStatus(p, "Stage 9");
+        drawStatus(p, "Stage 2");
     };
     p.windowResized = () => {
         p.resizeCanvas(window.innerWidth, window.innerHeight);

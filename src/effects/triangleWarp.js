@@ -7,29 +7,7 @@ function triangleToMat(cv, triangle, matType = cv.CV_32SC2) {
   );
 }
 
-export function testWarpAffine() {
-  const cv = window.cv;
 
-  const srcTri = cv.matFromArray(3, 1, cv.CV_32FC2, [
-    0, 0,
-    100, 0,
-    0, 100
-  ]);
-
-  const dstTri = cv.matFromArray(3, 1, cv.CV_32FC2, [
-    0, 0,
-    120, 0,
-    0, 120
-  ]);
-
-  const warpMat = cv.getAffineTransform(srcTri, dstTri);
-
-  console.log("Affine Matrix:", warpMat.data64F);
-
-  srcTri.delete();
-  dstTri.delete();
-  warpMat.delete();
-}
 
 export function getTrianglePoints(face, triangle) {
   return triangle.map((index) => {
