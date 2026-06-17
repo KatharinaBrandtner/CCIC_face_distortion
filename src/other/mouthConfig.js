@@ -1,0 +1,1 @@
+// schreib mir nur mal eine MouthConfig.js datei in der ich an den zahlen rumspielen kann wie sehr sich was biegt usw
