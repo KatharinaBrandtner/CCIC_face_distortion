@@ -1,4 +1,5 @@
 import p5 from "p5";
+import "../style.css";
 import {
     waitForOpenCV
 } from "../opencvReady.js";
@@ -24,22 +25,46 @@ const DEBUG_DRAW_TRIANGLES2 = true;
 const DEBUG_DRAW_TRIANGLES = false;
 const DEBUG_SKIP_WARP = false;
 const DEBUG_DRAW_INDEX_LABELS = false;
+
 // ----------------------------------------------------
 // Tuning
 // ----------------------------------------------------
-const EYE_CENTER_SCALE = 1.2;
-const UPPER_LID_SCALE = 1.10;
-const LOWER_LID_SCALE = 1.10;
-const OUTER_TOP_CENTER_SCALE = 1.16;
-const OUTER_TOP_OUTER_SCALE = 1.18;
-const OUTER_BOTTOM_CENTER_SCALE = 1.2;
-const OUTER_BOTTOM_OUTER_SCALE = 1.02;
-const OUTER_BOTTOM_EXTREME_SCALE = 1.03;
-const OUTER_INNER_SCALE = 1.16;
-const OUTER_RING_SCALE = 1.13;
-const OUTER_CORNER_SCALE = 1.15;
-const INNER_CORNER_SCALE = 1.2;
-const LASH_SCALE = 1.14;
+const DEFAULT_TUNING = {
+    EYE_CENTER_SCALE: 1.08,
+    UPPER_LID_SCALE: 1.10,
+    LOWER_LID_SCALE: 1.10,
+    OUTER_TOP_CENTER_SCALE: 1.06,
+    OUTER_TOP_OUTER_SCALE: 1.08,
+    OUTER_BOTTOM_CENTER_SCALE: 1.08,
+    OUTER_BOTTOM_OUTER_SCALE: 1.14,
+    OUTER_BOTTOM_EXTREME_SCALE: 1.08,
+    OUTER_INNER_SCALE: 1.04,
+    OUTER_RING_SCALE: 1.10,
+    OUTER_CORNER_SCALE: 1.07,
+    INNER_CORNER_SCALE: 1.00,
+    LASH_SCALE: 1.05,
+};
+
+const tuning = { ...DEFAULT_TUNING };
+
+const TUNING_CONFIG = [
+    { key: "EYE_CENTER_SCALE", label: "Eye center", min: 0.85, max: 1.80, step: 0.01 },
+    { key: "UPPER_LID_SCALE", label: "Upper lid", min: 0.85, max: 1.60, step: 0.01 },
+    { key: "LOWER_LID_SCALE", label: "Lower lid", min: 0.85, max: 1.60, step: 0.01 },
+    { key: "OUTER_TOP_CENTER_SCALE", label: "Outer top center", min: 0.85, max: 1.40, step: 0.01 },
+    { key: "OUTER_TOP_OUTER_SCALE", label: "Outer top outer", min: 0.85, max: 1.40, step: 0.01 },
+    { key: "OUTER_BOTTOM_CENTER_SCALE", label: "Outer bottom center", min: 0.85, max: 1.40, step: 0.01 },
+    { key: "OUTER_BOTTOM_OUTER_SCALE", label: "Outer bottom outer", min: 0.85, max: 1.60, step: 0.01 },
+    { key: "OUTER_BOTTOM_EXTREME_SCALE", label: "Outer bottom extreme", min: 0.85, max: 1.40, step: 0.01 },
+    { key: "OUTER_INNER_SCALE", label: "Outer inner", min: 0.85, max: 1.40, step: 0.01 },
+    { key: "OUTER_RING_SCALE", label: "Outer ring", min: 0.85, max: 1.60, step: 0.01 },
+    { key: "OUTER_CORNER_SCALE", label: "Outer corner", min: 0.85, max: 1.40, step: 0.01 },
+    { key: "INNER_CORNER_SCALE", label: "Inner corner", min: 0.80, max: 1.20, step: 0.01 },
+    { key: "LASH_SCALE", label: "Lash ring", min: 0.85, max: 1.40, step: 0.01 },
+];
+
+const TUNING_STORAGE_KEY = "ccic-face-distortion-stage10-slider";
+const tuningControls = new Map();
 // ----------------------------------------------------
 // MediaPipe eye contour groups (subject perspective)
 // ----------------------------------------------------
@@ -281,6 +306,166 @@ function scaleGroup(points, indices, center, scale) {
     }
 }
 
+function scaleGroups(points, groups, center, scale) {
+    for (const group of groups) {
+        scaleGroup(points, group, center, scale);
+    }
+}
+
+function readStoredTuning() {
+    try {
+        const raw = window.localStorage.getItem(TUNING_STORAGE_KEY);
+        if (!raw) return;
+
+        const parsed = JSON.parse(raw);
+        for (const config of TUNING_CONFIG) {
+            const value = Number(parsed[config.key]);
+            if (Number.isFinite(value)) {
+                tuning[config.key] = value;
+            }
+        }
+    } catch (error) {
+        console.warn("Could not load tuning preset:", error);
+    }
+}
+
+function saveStoredTuning() {
+    try {
+        window.localStorage.setItem(TUNING_STORAGE_KEY, JSON.stringify(tuning));
+    } catch (error) {
+        console.warn("Could not save tuning preset:", error);
+    }
+}
+
+function setTuningValue(key, value, persist = true) {
+    tuning[key] = value;
+    const control = tuningControls.get(key);
+    if (control) {
+        control.valueLabel.html(value.toFixed(2));
+        if (Number(control.slider.value()) !== value) {
+            control.slider.value(value);
+        }
+    }
+    if (persist) {
+        saveStoredTuning();
+    }
+}
+
+function syncAllControls() {
+    for (const config of TUNING_CONFIG) {
+        setTuningValue(config.key, tuning[config.key], false);
+    }
+}
+
+function createTuningOverlay(p) {
+    const panel = p.createDiv();
+    panel.parent(document.body);
+    panel.style("position", "fixed");
+    panel.style("top", "16px");
+    panel.style("right", "16px");
+    panel.style("width", "320px");
+    panel.style("max-height", "calc(100vh - 32px)");
+    panel.style("overflow-y", "auto");
+    panel.style("padding", "14px 14px 12px");
+    panel.style("border-radius", "16px");
+    panel.style("background", "rgba(10, 10, 10, 0.78)");
+    panel.style("backdrop-filter", "blur(16px)");
+    panel.style("-webkit-backdrop-filter", "blur(16px)");
+    panel.style("border", "1px solid rgba(255, 255, 255, 0.14)");
+    panel.style("box-shadow", "0 18px 50px rgba(0, 0, 0, 0.45)");
+    panel.style("color", "#fff");
+    panel.style("font-family", "Arial, sans-serif");
+    panel.style("z-index", "20");
+
+    const title = p.createDiv("Stage 10 Slider");
+    title.parent(panel);
+    title.style("font-size", "14px");
+    title.style("font-weight", "700");
+    title.style("letter-spacing", "0.08em");
+    title.style("text-transform", "uppercase");
+    title.style("margin-bottom", "10px");
+
+    const description = p.createDiv("Live tuning for the eye warp constants.");
+    description.parent(panel);
+    description.style("font-size", "12px");
+    description.style("line-height", "1.35");
+    description.style("opacity", "0.72");
+    description.style("margin-bottom", "12px");
+
+    for (const config of TUNING_CONFIG) {
+        const row = p.createDiv();
+        row.parent(panel);
+        row.style("margin-bottom", "10px");
+
+        const top = p.createDiv();
+        top.parent(row);
+        top.style("display", "flex");
+        top.style("justify-content", "space-between");
+        top.style("align-items", "baseline");
+        top.style("gap", "12px");
+
+        const label = p.createDiv(config.label);
+        label.parent(top);
+        label.style("font-size", "12px");
+        label.style("font-weight", "600");
+
+        const valueLabel = p.createDiv(tuning[config.key].toFixed(2));
+        valueLabel.parent(top);
+        valueLabel.style("font-size", "12px");
+        valueLabel.style("font-variant-numeric", "tabular-nums");
+        valueLabel.style("opacity", "0.85");
+
+        const slider = p.createSlider(config.min, config.max, tuning[config.key], config.step);
+        slider.parent(row);
+        slider.style("width", "100%");
+
+        slider.input(() => {
+            const value = Number(slider.value());
+            setTuningValue(config.key, value);
+        });
+
+        tuningControls.set(config.key, { slider, valueLabel });
+    }
+
+    const actions = p.createDiv();
+    actions.parent(panel);
+    actions.style("display", "flex");
+    actions.style("gap", "8px");
+    actions.style("margin-top", "8px");
+
+    const resetButton = p.createButton("Reset");
+    resetButton.parent(actions);
+    resetButton.style("flex", "1");
+    resetButton.style("padding", "10px 12px");
+    resetButton.style("border", "0");
+    resetButton.style("border-radius", "10px");
+    resetButton.style("background", "#ffffff");
+    resetButton.style("color", "#111111");
+    resetButton.style("font-weight", "700");
+    resetButton.style("cursor", "pointer");
+    resetButton.mousePressed(() => {
+        Object.assign(tuning, DEFAULT_TUNING);
+        syncAllControls();
+        saveStoredTuning();
+    });
+
+    const presetButton = p.createButton("Save");
+    presetButton.parent(actions);
+    presetButton.style("flex", "1");
+    presetButton.style("padding", "10px 12px");
+    presetButton.style("border", "0");
+    presetButton.style("border-radius", "10px");
+    presetButton.style("background", "#4b8cff");
+    presetButton.style("color", "#ffffff");
+    presetButton.style("font-weight", "700");
+    presetButton.style("cursor", "pointer");
+    presetButton.mousePressed(() => {
+        saveStoredTuning();
+    });
+
+    syncAllControls();
+}
+
 function createManipulatedPoints(originalPoints) {
     const points = originalPoints.map((p) => ({
         x: p.x,
@@ -329,87 +514,57 @@ function createManipulatedPoints(originalPoints) {
     // Linkes Auge
     // ----------------------------------------------------
 
-    // Auge
-    scaleGroup(
-        points,
-        LEFT_EYE_CONTOUR,
-        leftCenter,
-        1.50
-    );
+    scaleGroup(points, LEFT_EYE_CONTOUR, leftCenter, tuning.EYE_CENTER_SCALE);
+    scalePoint(points, 33, leftCenter, tuning.OUTER_CORNER_SCALE);
+    scalePoint(points, 133, leftCenter, tuning.INNER_CORNER_SCALE);
 
-    // Ring 1
-    scaleGroup(
-        points,
-        LEFT_EYE_OUTER_RING1,
-        leftCenter,
-        1.25
-    );
+    scaleGroups(points, [[246, 161], [160, 159, 158, 157, 173]], leftCenter, tuning.UPPER_LID_SCALE);
+    scaleGroups(points, [[7, 163, 144, 145, 153, 154, 155]], leftCenter, tuning.LOWER_LID_SCALE);
 
-    // Ring 2
+    scaleGroup(points, LEFT_EYE_OUTER_RING1, leftCenter, tuning.OUTER_RING_SCALE);
+
     for (const id of LEFT_EYE_OUTER_RING2) {
-        scalePointWithBarrier(
-            points,
-            id,
-            leftCenter,
-            1.10,
-            leftBrowLineY
-        );
+        scalePointWithBarrier(points, id, leftCenter, tuning.LASH_SCALE, leftBrowLineY);
     }
 
-    // Ring 3
     for (const id of LEFT_EYE_OUTER_RING3) {
-        scalePointWithBarrier(
-            points,
-            id,
-            leftCenter,
-            1.05,
-            leftBrowLineY
-        );
+        scalePointWithBarrier(points, id, leftCenter, tuning.LASH_SCALE, leftBrowLineY);
     }
+
+    scaleGroups(points, [LEFT_OUTER_TOP_INNER, LEFT_OUTER_BOTTOM_INNER], leftCenter, tuning.OUTER_INNER_SCALE);
+    scaleGroups(points, [LEFT_OUTER_TOP_CENTER], leftCenter, tuning.OUTER_TOP_CENTER_SCALE);
+    scaleGroups(points, [LEFT_OUTER_TOP_OUTER], leftCenter, tuning.OUTER_TOP_OUTER_SCALE);
+    scaleGroups(points, [LEFT_OUTER_BOTTOM_CENTER], leftCenter, tuning.OUTER_BOTTOM_CENTER_SCALE);
+    scaleGroups(points, [LEFT_OUTER_BOTTOM_OUTER], leftCenter, tuning.OUTER_BOTTOM_OUTER_SCALE);
+    scaleGroups(points, [LEFT_OUTER_BOTTOM_EXTREME], leftCenter, tuning.OUTER_BOTTOM_EXTREME_SCALE);
 
     // ----------------------------------------------------
     // Rechtes Auge
     // ----------------------------------------------------
 
-    // Auge
-    scaleGroup(
-        points,
-        RIGHT_EYE_CONTOUR,
-        rightCenter,
-        1.50
-    );
+    scaleGroup(points, RIGHT_EYE_CONTOUR, rightCenter, tuning.EYE_CENTER_SCALE);
+    scalePoint(points, 263, rightCenter, tuning.OUTER_CORNER_SCALE);
+    scalePoint(points, 362, rightCenter, tuning.INNER_CORNER_SCALE);
 
-    // Ring 1
-    scaleGroup(
-        points,
-        RIGHT_EYE_OUTER_RING1,
-        rightCenter,
-        1.25
-    );
+    scaleGroups(points, [[466, 388], [387, 386, 385, 384, 398]], rightCenter, tuning.UPPER_LID_SCALE);
+    scaleGroups(points, [[249, 390, 373, 374, 380, 381, 382]], rightCenter, tuning.LOWER_LID_SCALE);
 
-    // Ring 2
+    scaleGroup(points, RIGHT_EYE_OUTER_RING1, rightCenter, tuning.OUTER_RING_SCALE);
+
     for (const id of RIGHT_EYE_OUTER_RING2) {
-        scalePointWithBarrier(
-            points,
-            id,
-            rightCenter,
-            1.10,
-            rightBrowLineY
-        );
+        scalePointWithBarrier(points, id, rightCenter, tuning.LASH_SCALE, rightBrowLineY);
     }
 
-    // Ring 3
     for (const id of RIGHT_EYE_OUTER_RING3) {
-        scalePointWithBarrier(
-            points,
-            id,
-            rightCenter,
-            1.05,
-            rightBrowLineY
-        );
+        scalePointWithBarrier(points, id, rightCenter, tuning.LASH_SCALE, rightBrowLineY);
     }
 
-    
+    scaleGroups(points, [RIGHT_OUTER_TOP_INNER, RIGHT_OUTER_BOTTOM_INNER], rightCenter, tuning.OUTER_INNER_SCALE);
+    scaleGroups(points, [RIGHT_OUTER_TOP_CENTER], rightCenter, tuning.OUTER_TOP_CENTER_SCALE);
+    scaleGroups(points, [RIGHT_OUTER_TOP_OUTER], rightCenter, tuning.OUTER_TOP_OUTER_SCALE);
+    scaleGroups(points, [RIGHT_OUTER_BOTTOM_CENTER], rightCenter, tuning.OUTER_BOTTOM_CENTER_SCALE);
+    scaleGroups(points, [RIGHT_OUTER_BOTTOM_OUTER], rightCenter, tuning.OUTER_BOTTOM_OUTER_SCALE);
+    scaleGroups(points, [RIGHT_OUTER_BOTTOM_EXTREME], rightCenter, tuning.OUTER_BOTTOM_EXTREME_SCALE);
 
     return points;
 }
@@ -420,8 +575,14 @@ function createManipulatedPoints(originalPoints) {
 // ----------------------------------------------------
 new p5((p) => {
     p.setup = async () => {
-        p.createCanvas(window.innerWidth, window.innerHeight);
+        const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
         p.pixelDensity(1);
+        canvas.style("position", "fixed");
+        canvas.style("inset", "0");
+        canvas.style("z-index", "0");
+
+        readStoredTuning();
+        createTuningOverlay(p);
         await waitForOpenCV();
         testWarpAffine();
         await setupFaceTracking();
@@ -495,7 +656,7 @@ new p5((p) => {
             srcMat.delete();
             dstMat.delete();
         }
-        drawStatus(p, "Stage 9");
+        drawStatus(p, "Stage 10 Slider");
     };
     p.windowResized = () => {
         p.resizeCanvas(window.innerWidth, window.innerHeight);
