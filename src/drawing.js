@@ -54,6 +54,8 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   }
   
   export function drawFacePoints(p, face, videoSize, mood, appState) {
+    if (!face || !face.keypoints || !videoSize) return;
+  
     const rect = getCoverRect(
       p.width,
       p.height,
@@ -80,12 +82,13 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     p.noStroke();
     p.fill(r, g, b);
     p.textSize(18);
+    p.textAlign(p.LEFT, p.BASELINE);
     p.text(text, 24, p.height - 32);
   }
+  
   export function getFaceWindowCutout(p) {
     const faceWindow = document.querySelector('.face-window');
   
-    // Fallback, falls das Element nicht gefunden wird
     if (!faceWindow || !p.canvas) {
       return {
         cx: p.width / 2,
@@ -113,7 +116,7 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
       ry: h / 2,
     };
   }
-
+  
   export function drawAnalysisOverlay(p, progress, mood, appState) {
     const [r, g, b] = getInterfaceColor(mood, appState);
   
@@ -142,7 +145,12 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   
     p.noStroke();
     p.fill(r, g, b);
-    p.rect(progressBarX, progressBarY, progressBarWidth * progress, progressBarHeight);
+    p.rect(
+      progressBarX,
+      progressBarY,
+      progressBarWidth * progress,
+      progressBarHeight
+    );
   
     p.stroke(r, g, b);
     p.noFill();
@@ -195,8 +203,6 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   export function getHappinessScore(mood) {
     if (!mood) return 0;
   
-    // Falls du in moodDetection.js happyScore speicherst,
-    // wird dieser manipulierte Wert bevorzugt
     if (typeof mood.happyScore === 'number') {
       return mood.happyScore;
     }
@@ -207,7 +213,6 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   }
   
   export function drawMoodTint(p, mood, appState) {
-    // Einfärbung erst nach preanalyzing
     if (!shouldShowMoodVisuals(appState, mood)) return;
   
     const visuals = getMoodVisuals(mood);
@@ -221,7 +226,6 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   
     ctx.save();
   
-    // Ein Pfad: kompletter Screen + ausgesparter Kreis
     ctx.beginPath();
     ctx.rect(0, 0, p.width, p.height);
   
@@ -235,10 +239,9 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
       Math.PI * 2
     );
   
-    // Mood-Farbe
     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.30)`;
   
-    // "evenodd" sorgt dafür, dass der Kreis ausgespart wird
+    // Der Kreis wird ausgespart
     ctx.fill('evenodd');
   
     ctx.restore();
@@ -246,7 +249,14 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     p.pop();
   }
   
-  export function drawMoodResultPanel(p, mood, appState) {
+  export function drawMoodResultPanel(
+    p,
+    mood,
+    appState,
+    face,
+    videoSize,
+    lockedPerfectFaceScore
+  ) {
     // Panel erst nach preanalyzing anzeigen
     if (!shouldShowMoodVisuals(appState, mood)) return;
   
@@ -255,6 +265,20 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   
     const detectedMood = visuals.label;
     const happinessScore = getHappinessScore(mood);
+  
+    // Wichtig:
+    // Hier wird NICHT mehr calculatePerfectFaceScore() aufgerufen.
+    // Es wird nur der bereits gespeicherte Wert aus main.js angezeigt.
+    let perfectFaceValue = null;
+  
+    if (typeof lockedPerfectFaceScore === 'number') {
+      perfectFaceValue = lockedPerfectFaceScore;
+    } else if (
+      lockedPerfectFaceScore &&
+      typeof lockedPerfectFaceScore.total === 'number'
+    ) {
+      perfectFaceValue = lockedPerfectFaceScore.total;
+    }
   
     const leftX = 28;
     const panelWidth = p.width / 3;
@@ -278,25 +302,38 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     p.textAlign(p.LEFT, p.TOP);
   
     p.textSize(labelSize);
-    p.text('DETECTED MOOD', leftX, blockTop);
+    p.text('PERFECT FACE SCORE', leftX, blockTop);
   
     p.textSize(valueSize);
     p.fill(r, g, b);
-    p.text(detectedMood, leftX, blockTop + 20);
+  
+    if (perfectFaceValue !== null) {
+      p.text(`${perfectFaceValue}%`, leftX, blockTop + 20);
+    } else {
+      p.text('--%', leftX, blockTop + 20);
+    }
+  
+    p.fill(230);
+    p.textSize(labelSize);
+    p.text('DETECTED MOOD', leftX, blockTop + 50);
+  
+    p.textSize(valueSize);
+    p.fill(r, g, b);
+    p.text(detectedMood, leftX, blockTop + 70);
   
     p.textSize(labelSize);
     p.fill(230);
-    p.text('HAPPINESS SCORE', leftX, blockTop + 58);
+    p.text('HAPPINESS SCORE', leftX, blockTop + 100);
   
     p.textSize(bigValueSize);
     p.fill(r, g, b);
-    p.text(`${happinessScore}%`, leftX, blockTop + 78);
+    p.text(`${happinessScore}%`, leftX, blockTop + 120);
   
     const barX = leftX;
-    const barY = blockTop + 112;
+    const barY = blockTop + 150;
     const barW = panelWidth - leftX * 2;
     const barH = 8;
-    const progress = happinessScore / 100;
+    const progress = p.constrain(happinessScore / 100, 0, 1);
   
     p.noStroke();
     p.fill(255, 255, 255, 35);

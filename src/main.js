@@ -3,6 +3,7 @@ import p5 from 'p5';
 import {setupFaceTracking, getVideo, getFaces, getVideoSize, isFaceTrackingReady,hasFace} from './faceTracking.js';
 import {setupMoodDetection,detectMoodOnce,isMoodDetectionReady,resetMoodDetection} from './moodDetection.js';
 import {drawCamera,drawFacePoints,drawStatus, drawAnalysisOverlay,  drawMoodTint, drawMoodResultPanel} from './drawing.js';
+import { calculatePerfectFaceScore } from './faceScore.js';
 
 document.querySelector('#app').innerHTML = `
   <section class="screen">
@@ -23,6 +24,9 @@ let appState = 'loading';
 
 let lockedMood = null;
 let moodAnalyzed = false;
+
+let lockedPerfectFaceScore = null;
+let perfectFaceAnalyzed = false;
 
 let analysisStartTime = 0;
 const ANALYSIS_DURATION = 3500;
@@ -102,28 +106,43 @@ const sketch = (p) => {
   
       return;
     }
-  
     // Schritt 3: face-api analysiert gerade wirklich
     if (appState === 'analyzing') {
       drawAnalysisOverlay(p, 1);
       drawStatus(p, 'Emotional profile wird berechnet...');
       return;
     }
-  
+
     if (appState === 'manipulating' && lockedMood) {
       const faces = getFaces();
-    
+      const face = faces[0];
+
+      // Perfect Face Score nur EINMAL berechnen
+      if (face && !perfectFaceAnalyzed) {
+        lockedPerfectFaceScore = calculatePerfectFaceScore(face, videoSize);
+        perfectFaceAnalyzed = true;
+
+        console.log('Locked Perfect Face Score:', lockedPerfectFaceScore);
+      }
+
       // leichte Farbigkeit passend zum Mood
       drawMoodTint(p, lockedMood, appState);
-    
+
       // FaceMesh weiter sichtbar
-      if (faces.length > 0) {
-        drawFacePoints(p, faces[0], videoSize);
+      if (face) {
+        drawFacePoints(p, face, videoSize);
       }
-    
+
       // Ergebnis-UI unten
-      drawMoodResultPanel(p, lockedMood);
-    
+      drawMoodResultPanel(
+        p,
+        lockedMood,
+        appState,
+        face,
+        videoSize,
+        lockedPerfectFaceScore
+      );
+
       return;
     }
   
