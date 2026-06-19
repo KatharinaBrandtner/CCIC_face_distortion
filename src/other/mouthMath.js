@@ -10,7 +10,8 @@ import {
     RIGHT_CHEEK_SMILE,
     LEFT_CORNER_CHAIN,
     RIGHT_CORNER_CHAIN,
-    LOWER_OUTER_SMILE
+    LOWER_OUTER_SMILE,
+    OPEN_MOUTH_TRIANGLES, MOUTH_ROI, MOUTH_SCALE_BORDER, MOUTH_SCALE_INNER, MOUTH_SCALE_TRIANGLES
 } from "../triangles/mouthPoints.js";
 
 import { getCoverRect } from "../drawing.js";
@@ -111,79 +112,66 @@ export function isOpenSmile(points) {
 
 export function applyOpenSmile(points) {
 
-    const openAmount = getMouthOpenAmount(points);
+//     const openAmount =
+//         getMouthOpenAmount(points);
 
-    const smileStrength = Math.min(
-        1,
-        Math.max(
-            0,
-            (openAmount - 12) / 20
-        )
-    );
+//     const smileStrength = Math.min(
+//         1,
+//         Math.max(
+//             0,
+//             (openAmount - 12) / 20
+//         )
+//     );
 
-    const cornerLift = 20 + smileStrength * 12;
-    const cornerSpread = 8 + smileStrength * 6;
+//     const center = {
+//         x: (points[61].x + points[291].x) / 2,
+//         y: (points[13].y + points[14].y) / 2,
+//     };
 
-    // Mundwinkel
-    points[61].y -= cornerLift;
-    points[291].y -= cornerLift;
-
-    points[61].x -= cornerSpread;
-    points[291].x += cornerSpread;
-
+//     const mouthRegion = [
+//         ...new Set([
+//             ...MOUTH_OUTER,
+//             ...MOUTH_INNER
+//         ])
+//     ];
 
     
-    // Smile-Kette mitziehen
-    const chainLift = [
-    0,
-    2 + smileStrength,
-    4 + smileStrength * 2,
-    8 + smileStrength * 3,
-    18 + smileStrength * 6
-];
+//     const scaleX =
+//         1 + smileStrength * 0.35; 
 
-    LEFT_CORNER_CHAIN.forEach((id, i) => {
-        points[id].y -= chainLift[i];
-    });
+//     const scaleY =
+//         1 + smileStrength * 0.35;
 
-    RIGHT_CORNER_CHAIN.forEach((id, i) => {
-        points[id].y -= chainLift[i];
-    });
+//     for (const id of mouthRegion) {
 
-    // Oberlippe
-    for (const id of UPPER_SMILE_POINTS) {
-        points[id].y -= 2 + smileStrength * 2;
-    }
+//         const dx =
+//             points[id].x - center.x;
 
-    // Unterlippe
-    for (const id of LOWER_SMILE_POINTS) {
-        points[id].y += 2 + smileStrength * 2;
-    }
+//         const dy =
+//             points[id].y - center.y;
 
-    // unteren Außenring mitziehen
-    const lowerLift = 1 + smileStrength * 2;
+//         points[id].x =
+//             center.x + dx * scaleX;
 
-    for (const id of LOWER_OUTER_SMILE) {
-        points[id].y -= lowerLift;
-    }
+//         points[id].y =
+//             center.y + dy * scaleY;
+//     }
 
-    // Lippenöffnung etwas verbreitern
-    points[78].x -= smileStrength * 2;
-    points[308].x += smileStrength * 2;
+//     // minimale Smile-Anhebung
 
-    points[95].x -= smileStrength;
-    points[324].x += smileStrength;
+//     points[61].x -= 2;
+//     points[291].x += 2;
 
-    // Wangen hochziehen
-    const cheekLift = 3 + smileStrength * 4;
+//     points[61].y -= 2;
+//     points[291].y -= 2;
 
-    for (const id of LEFT_CHEEK_SMILE) {
-        points[id].y -= cheekLift;
-    }
+//     console.log(
+//     "OPEN",
+//     smileStrength
+// );
 
-    for (const id of RIGHT_CHEEK_SMILE) {
-        points[id].y -= cheekLift;
-    }
+return points;
+
 }
 
 
@@ -195,11 +183,25 @@ export function createManipulatedMouthPoints(originalPoints) {
         y: p.y,
     }));
 
-    if (isOpenSmile(originalPoints)) {
-    applyOpenSmile(points);
-} else {
-    applyClosedSmile(points);
-}
+    let mode = "closed";
+    if (isMouthOpen(originalPoints)) {
+        mode = "open";
+    } else {
+        applyClosedSmile(points);
+    }
+    // if (isOpenSmile(originalPoints)) {
+    //     applyOpenSmile(points);
+    //     mode = "open";
+    // } else {
+    //     applyClosedSmile(points);
+    // }
 
-    return points;
+    return {
+        points,
+        mode
+    };
+
+
+
+    
 }
