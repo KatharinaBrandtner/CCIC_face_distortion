@@ -29,6 +29,16 @@ import {
 
 import { getCoverRect } from "../drawing.js";
 
+export function landmarkToCanvas(p, point, videoSize) {
+    const rect = getCoverRect(p.width, p.height, videoSize.width, videoSize.height);
+    const videoX = point.x <= 1 ? point.x * videoSize.width : point.x;
+    const videoY = point.y <= 1 ? point.y * videoSize.height : point.y;
+    return {
+        x: rect.x + (videoX / videoSize.width) * rect.w,
+        y: rect.y + (videoY / videoSize.height) * rect.h,
+    };
+}
+
 function getCenter(points, indices) {
     let x = 0;
     let y = 0;
