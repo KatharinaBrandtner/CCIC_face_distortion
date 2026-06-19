@@ -28,8 +28,23 @@ let moodAnalyzed = false;
 let lockedPerfectFaceScore = null;
 let perfectFaceAnalyzed = false;
 
+let faceDetectedTime = null; 
+const FACE_DETECTION_DELAY = 1500;
+
 let analysisStartTime = 0;
 const ANALYSIS_DURATION = 3500;
+
+function updateFaceWindowVisibility(appState) {
+  const faceWindow = document.querySelector('.face-window');
+
+  const shouldShowFaceWindow =
+    appState === 'loading' ||
+    appState === 'searching';
+
+  if (faceWindow) {
+    faceWindow.classList.toggle('is-hidden', !shouldShowFaceWindow);
+  }
+}
 
 const sketch = (p) => {
   p.setup = async () => {
@@ -51,7 +66,8 @@ const sketch = (p) => {
   
     const video = getVideo();
     const videoSize = getVideoSize();
-  
+    
+  updateFaceWindowVisibility(appState);
     if (appState === 'loading') {
       drawStatus(p, 'System lädt...');
       return;
@@ -78,13 +94,19 @@ const sketch = (p) => {
       const faces = getFaces();
       drawFacePoints(p, faces[0], videoSize);
     }
-  
     // Schritt 1: Gesicht wurde erkannt → Fake Analyse starten
-    if (appState === 'searching' && faceDetected) {
-      appState = 'preAnalyzing';
-      analysisStartTime = p.millis();
-    }
+    if (appState === 'searching') {
+      if (!faceDetectedTime) {
+        faceDetectedTime = p.millis(); // Store the time when the face is first detected
+      }
   
+      const elapsedSinceDetection = p.millis() - faceDetectedTime;
+  
+      if (elapsedSinceDetection >= FACE_DETECTION_DELAY) {
+        appState = 'preAnalyzing';
+        analysisStartTime = p.millis();
+      }
+    }
     // Schritt 2: Ladebalken / Analyzing Face anzeigen
     if (appState === 'preAnalyzing') {
       const elapsed = p.millis() - analysisStartTime;

@@ -85,7 +85,6 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     p.textAlign(p.LEFT, p.BASELINE);
     p.text(text, 24, p.height - 32);
   }
-  
   export function getFaceWindowCutout(p) {
     const faceWindow = document.querySelector('.face-window');
   
@@ -120,85 +119,111 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   export function drawAnalysisOverlay(p, progress, mood, appState) {
     const [r, g, b] = getInterfaceColor(mood, appState);
   
+    const panel = getPanelUnderFace(p, 300);
+  
+    const padding = 32;
+    const leftX = panel.x + padding;
+    const topY = panel.y + 34;
+    const rightX = panel.x + panel.w - padding;
+  
     p.push();
   
-    const marginX = 60;
-    const panelWidth = p.width / 3;
-    const bottomY = p.height - 210;
+    // Vignette Effect (Dark Corners)
+    const vignetteAlpha = 100; // Adjust transparency of the vignette
+    const vignetteSize = Math.max(p.width, p.height) * 1.5; // Size of the vignette
   
     p.noStroke();
-    p.fill(0, 120);
-    p.rect(0, p.height - 280, panelWidth, 280);
+    p.fill(0, 0, 0, vignetteAlpha);
+    p.ellipseMode(p.CENTER);
+    p.ellipse(p.width / 2, p.height / 2, vignetteSize, vignetteSize);
   
+    // Panel Background
+    p.noStroke();
+    p.fill(0, 0, 0, 135);
+    p.rect(panel.x, panel.y, panel.w, panel.h, 16);
+  
+    // Panel Border
+    p.stroke(r, g, b, 90);
+    p.strokeWeight(1);
+    p.noFill();
+    p.rect(panel.x, panel.y, panel.w, panel.h, 16);
+  
+    // Text
+    p.noStroke();
     p.textAlign(p.LEFT, p.TOP);
     p.textSize(22);
     p.fill(r, g, b);
   
-    p.text('ANALYZING FACE...', marginX, bottomY);
-    p.text('DETECTING EMOTIONAL PROFILE...', marginX, bottomY + 58);
-    p.text('CALCULATING POTENTIAL...', marginX, bottomY + 116);
+    p.text('ANALYZING FACE...', leftX, topY);
+    p.text('DETECTING EMOTIONAL PROFILE...', leftX, topY + 62);
+    p.text('CALCULATING POTENTIAL...', leftX, topY + 124);
   
-    const progressBarWidth = panelWidth - 2 * marginX;
-    const progressBarHeight = 20;
-    const progressBarX = marginX;
-    const progressBarY = bottomY + 180;
+    // Progress Bar
+    const progressBarX = leftX;
+    const progressBarY = topY + 188;
+    const progressBarWidth = rightX - leftX;
+    const progressBarHeight = 18;
+  
+    const safeProgress = p.constrain(progress, 0, 1);
   
     p.noStroke();
+    p.fill(255, 255, 255, 35);
+    p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
+  
     p.fill(r, g, b);
     p.rect(
       progressBarX,
       progressBarY,
-      progressBarWidth * progress,
-      progressBarHeight
+      progressBarWidth * safeProgress,
+      progressBarHeight,
+      4
     );
   
-    p.stroke(r, g, b);
+    p.stroke(r, g, b, 180);
+    p.strokeWeight(1);
     p.noFill();
-    p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight);
+    p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
   
     p.pop();
-  }
-  
+}
   export function getMoodVisuals(mood) {
     const label = mood?.label || 'neutral';
   
     const moodMap = {
       happy: {
         label: 'HAPPY',
-        color: [255, 210, 90],
+        color: { r: 255, g: 210, b: 90 },
       },
       neutral: {
         label: 'NEUTRAL',
-        color: [255, 220, 120],
+        color: { r: 255, g: 220, b: 120 },
       },
       sad: {
         label: 'SAD',
-        color: [90, 150, 255],
+        color: { r: 90, g: 150, b: 255 },
       },
       angry: {
         label: 'ANGRY',
-        color: [255, 90, 90],
+        color: { r: 255, g: 90, b: 90 },
       },
       surprised: {
         label: 'SURPRISED',
-        color: [120, 220, 255],
+        color: { r: 120, g: 220, b: 255 },
       },
       fearful: {
         label: 'FEARFUL',
-        color: [180, 120, 255],
+        color: { r: 180, g: 120, b: 255 },
       },
       disgusted: {
         label: 'DISGUSTED',
-        color: [140, 220, 120],
+        color: { r: 140, g: 220, b: 120 },
       },
       unknown: {
         label: 'UNKNOWN',
-        color: [180, 180, 180],
+        color: { r: 180, g: 180, b: 180 },
       },
     };
-  
-    return moodMap[label] || moodMap.neutral;
-  }
+    return moodMap[label] || moodMap.neutral;}
   
   export function getHappinessScore(mood) {
     if (!mood) return 0;
@@ -215,40 +240,64 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   export function drawMoodTint(p, mood, appState) {
     if (!shouldShowMoodVisuals(appState, mood)) return;
   
-    const visuals = getMoodVisuals(mood);
-    const [r, g, b] = visuals.color;
-  
-    const cutout = getFaceWindowCutout(p);
-  
-    p.push();
-  
     const ctx = p.drawingContext;
+  
+    const visuals = getMoodVisuals(mood);
+    const { r, g, b } = visuals.color;
+  
+    const cx = p.width / 2;
+    const cy = p.height / 2;
+  
+    // Radius so groß, dass die Ecken erreicht werden
+    const maxRadius = Math.sqrt(cx * cx + cy * cy);
+    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxRadius);
+  
+    // Mitte fast transparent
+    gradient.addColorStop(0.0, `rgba(${r}, ${g}, ${b}, 0.00)`);
+  
+    // Zwischenbereich leicht sichtbar
+    gradient.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.15)`);
+  
+    // Außen stärker
+    gradient.addColorStop(0.75, `rgba(${r}, ${g}, ${b}, 0.40)`);
+  
+    // Ecken am stärksten
+    gradient.addColorStop(1.0, `rgba(${r}, ${g}, ${b}, 0.80)`);
   
     ctx.save();
   
-    ctx.beginPath();
-    ctx.rect(0, 0, p.width, p.height);
+    // wirkt mehr wie ein Farbfilter statt wie eine platte Fläche
+    ctx.globalCompositeOperation = 'screen';
   
-    ctx.ellipse(
-      cutout.cx,
-      cutout.cy,
-      cutout.rx,
-      cutout.ry,
-      0,
-      0,
-      Math.PI * 2
-    );
-  
-    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.30)`;
-  
-    // Der Kreis wird ausgespart
-    ctx.fill('evenodd');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, p.width, p.height);
   
     ctx.restore();
-  
-    p.pop();
   }
+
+  export function getPanelUnderFace(p, panelH = 300) {
+    const cutout = getFaceWindowCutout(p);
   
+    const panelW = Math.min(
+      p.width * 0.75,
+      Math.max(550, cutout.rx * 3)
+    );
+  
+    let panelX = cutout.cx - panelW / 2;
+    let panelY = cutout.cy + cutout.ry + 32;
+  
+    // Damit das Panel nie aus dem Canvas rausläuft
+    panelX = p.constrain(panelX, 24, p.width - panelW - 24);
+    panelY = p.constrain(panelY, 24, p.height - panelH - 24);
+  
+    return {
+      x: panelX,
+      y: panelY,
+      w: panelW,
+      h: panelH,
+    };
+  }
+
   export function drawMoodResultPanel(
     p,
     mood,
@@ -257,18 +306,14 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     videoSize,
     lockedPerfectFaceScore
   ) {
-    // Panel erst nach preanalyzing anzeigen
     if (!shouldShowMoodVisuals(appState, mood)) return;
   
     const visuals = getMoodVisuals(mood);
-    const [r, g, b] = visuals.color;
+    const { r, g, b } = visuals.color;
   
     const detectedMood = visuals.label;
     const happinessScore = getHappinessScore(mood);
   
-    // Wichtig:
-    // Hier wird NICHT mehr calculatePerfectFaceScore() aufgerufen.
-    // Es wird nur der bereits gespeicherte Wert aus main.js angezeigt.
     let perfectFaceValue = null;
   
     if (typeof lockedPerfectFaceScore === 'number') {
@@ -280,71 +325,83 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
       perfectFaceValue = lockedPerfectFaceScore.total;
     }
   
-    const leftX = 28;
-    const panelWidth = p.width / 3;
-    const blockTop = p.height - 170;
+    const panel = getPanelUnderFace(p);
+  
+    const padding = 28;
+    const leftX = panel.x + padding;
+    const topY = panel.y + 24;
+    const rightX = panel.x + panel.w - padding;
+  
     const labelSize = 22;
     const valueSize = 22;
-    const bigValueSize = 22;
   
     p.push();
   
+    // Panel Background
     p.noStroke();
-    p.fill(0, 0, 0, 120);
-    p.rect(0, p.height - 210, panelWidth, 210);
+    p.fill(0, 0, 0, 135);
+    p.rect(panel.x, panel.y, panel.w, panel.h, 16);
   
-    p.stroke(r, g, b, 70);
+    // Rahmen
+    p.stroke(r, g, b, 120);
     p.strokeWeight(1);
-    p.line(leftX, blockTop + 42, panelWidth - leftX, blockTop + 42);
+    p.noFill();
+    p.rect(panel.x, panel.y, panel.w, panel.h, 16);
   
     p.noStroke();
-    p.fill(230);
     p.textAlign(p.LEFT, p.TOP);
   
+    // PERFECT FACE SCORE
+    p.fill(230);
     p.textSize(labelSize);
-    p.text('PERFECT FACE SCORE', leftX, blockTop);
+    p.text('PERFECT FACE SCORE', leftX, topY);
   
-    p.textSize(valueSize);
     p.fill(r, g, b);
+    p.textSize(valueSize);
   
     if (perfectFaceValue !== null) {
-      p.text(`${perfectFaceValue}%`, leftX, blockTop + 20);
+      p.text(`${perfectFaceValue}%`, leftX, topY + 28);
     } else {
-      p.text('--%', leftX, blockTop + 20);
+      p.text('--%', leftX, topY + 28);
     }
   
+    // Linie
+    p.stroke(r, g, b, 70);
+    p.strokeWeight(1);
+    p.line(leftX, topY + 64, rightX, topY + 64);
+  
+    // DETECTED MOOD
+    p.noStroke();
     p.fill(230);
     p.textSize(labelSize);
-    p.text('DETECTED MOOD', leftX, blockTop + 50);
+    p.text('DETECTED MOOD', leftX, topY + 87);
   
+    p.fill(r, g, b);
     p.textSize(valueSize);
-    p.fill(r, g, b);
-    p.text(detectedMood, leftX, blockTop + 70);
+    p.text(detectedMood, leftX, topY + 115);
   
-    p.textSize(labelSize);
+    // HAPPINESS SCORE
     p.fill(230);
-    p.text('HAPPINESS SCORE', leftX, blockTop + 100);
+    p.textSize(labelSize);
+    p.text('HAPPINESS SCORE', leftX, topY + 151);
   
-    p.textSize(bigValueSize);
     p.fill(r, g, b);
-    p.text(`${happinessScore}%`, leftX, blockTop + 120);
+    p.textSize(valueSize);
+    p.text(`${happinessScore}%`, leftX, topY + 179);
   
+    // Happiness Bar
     const barX = leftX;
-    const barY = blockTop + 150;
-    const barW = panelWidth - leftX * 2;
+    const barY = topY + 205;
+    const barW = panel.w - padding * 2;
     const barH = 8;
     const progress = p.constrain(happinessScore / 100, 0, 1);
   
     p.noStroke();
     p.fill(255, 255, 255, 35);
-    p.rect(barX, barY, barW, barH, 2);
+    p.rect(barX, barY, barW, barH, 4);
   
     p.fill(r, g, b);
-    p.rect(barX, barY, barW * progress, barH, 2);
-  
-    p.stroke(r, g, b, 180);
-    p.strokeWeight(2);
-    p.line(barX, barY - 2, barX + barW * progress, barY - 2);
+    p.rect(barX, barY, barW * progress, barH, 4);
   
     p.pop();
   }
