@@ -1,4 +1,4 @@
-import p5 from "p5";
+const p5 = window.p5;
 
 import {
   getCoverRect
