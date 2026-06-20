@@ -1,3 +1,7 @@
+
+// in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
+// die imports usw verweisen dann noch auf die restlichen nötigen dateien
+
 const p5 = window.p5;
 
 import { waitForOpenCV } from "../opencvReady.js";
@@ -77,26 +81,26 @@ new p5((p) => {
 
         const face = getFaces()[0];
         const cv = window.cv;
-
+// hier werden die kamera pixel in points umgewandelt, die dann manipuliert werden können
         const originalPoints = face.keypoints.map((pt) =>
             landmarkToCanvas(p, pt, videoSize)
         );
-
+// augen manipulation
         const eyePoints = createManipulatedPoints(originalPoints);
-
+// mund manipulation
         const mouthResult = createManipulatedMouthPoints(originalPoints);
         const mouthPoints = mouthResult.points;
         const mouthMode = mouthResult.mode;
         const openAmount = mouthResult.openAmount;
 
         const finalPoints = clonePoints(eyePoints);
-
+// zsm führend von eye und mouth manipulation, damit beide gleichzeitig gerendert werden können
         for (let i = 0; i < mouthPoints.length; i++) {
             if (mouthPoints[i]) {
                 finalPoints[i] = mouthPoints[i];
             }
         }
-
+// source und destination matrizen für opencv
         const srcMat = cv.imread(p.canvas);
         const dstMat = srcMat.clone();
 
@@ -111,7 +115,7 @@ new p5((p) => {
                 ) {
                     continue;
                 }
-
+// hier wird die eigentliche Verzerrung durchgeführt, indem die Dreiecke von der Originalposition zur neuen Position verzerrt werden
                 warpTriangle(
                     srcMat,
                     dstMat,
@@ -127,7 +131,7 @@ new p5((p) => {
                     ...originalPoints,
                     createMouthCenterPoint(originalPoints),
                 ];
-
+// hier ist iwo noch in traingle ehler was den mund angeht 
                 const openMouthTriangles = [
                     ...MOUTH_SCALE_TRIANGLES,
                     ...MOUTH_INNER_FILL_TRIANGLES,

@@ -1,3 +1,7 @@
+// aus dieser datei werden die Punkte definiert, die für die Manipulation der Mundregion verwendet werden. 
+// Es gibt verschiedene Gruppen von Punkten, die für unterschiedliche Teile des Mundes und verschiedene Manipulationen relevant sind, wie z.B. die inneren Punkte des Mundes, die Punkte für das Lächeln, die Dreiecke für die Mundregion usw. 
+// Diese Punkte werden in anderen Teilen des Projekts verwendet, um den Mund zu manipulieren und zu verzerren.
+
 import {
     FACEMESH_TRIANGLES
 } from "./facemeshTriangles.js";

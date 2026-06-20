@@ -26,6 +26,7 @@ import {
     INNER_CORNER_SCALE,
     LASH_SCALE
 } from "./eyeConfig";
+// dieser import enthält die Konstanten für die Augenkonturen und -ringe sowie die Skalierungsfaktoren für die verschiedenen Bereiche des Auges, die in eyeConfig.js definiert sind. Diese Werte können angepasst werden, um das Verhalten der Augenmanipulation zu ändern.
 
 import { getCoverRect } from "../drawing.js";
 
@@ -69,7 +70,7 @@ function scalePoint(points, index, center, scale) {
         y: center.y + (points[index].y - center.y) * scale,
     };
 }
-
+// diese funktion skaliert einen Punkt basierend auf einem Zentrum und einem Skalierungsfaktor. Sie berechnet die neue Position des Punkts, indem sie die Differenz zwischen dem Punkt und dem Zentrum nimmt, mit dem Skalierungsfaktor multipliziert und dann zum Zentrum zurückaddiert.
 function scalePointWithBarrier(points, index, center, scale, browLineY) {
     if (!points[index]) return;
     const p = points[index];
@@ -94,6 +95,9 @@ function scaleGroup(points, indices, center, scale) {
     }
 }
 
+
+// diese funktion skaliert eine Gruppe von Punkten, indem sie die scalePoint-Funktion für jeden Index in der Gruppe aufruft. 
+// Sie ermöglicht es, mehrere Punkte gleichzeitig basierend auf demselben Zentrum und Skalierungsfaktor zu skalieren.
 export function createManipulatedPoints(originalPoints) {
     const points = originalPoints.map((p) => ({
         x: p.x,

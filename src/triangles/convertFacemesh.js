@@ -1,4 +1,9 @@
-// convertFacemesh.js
+// diese datei liest die Verbindungsdaten der Mediapipe Facemesh Punkte aus der face_mesh_connections.py Datei aus, 
+// filtert die Dreiecke heraus und speichert sie in einem neuen JavaScript Modul, das dann in anderen Teilen des Projekts verwendet werden kann, 
+// um die Dreiecksverbindungen der Gesichtslandmarken zu definieren.
+
+// nicht alle dreiecke funktionieren, da manche punkte von mediapipe nicht immer erkannt werden, was zu fehlern führen kann, wenn versucht wird, diese punkte zu manipulieren.
+// deswegen muss man immer etwas debuggen und schauen, welche punkte in welchen situationen nicht erkannt werden, um die entsprechenden dreiecke aus der liste zu entfernen, damit es nicht zu fehlern kommt.
 
 import fs from "fs";
 

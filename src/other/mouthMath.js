@@ -35,7 +35,10 @@ import {
     OPEN_MOUTH_BORDER_SCALE_MIN,
     OPEN_MOUTH_BORDER_SCALE_MAX
 } from "./mouthConfig.js";
+// in dem import kann man die scales usw anpassen um das verhalten zu ändern, siehe mouthConfig.js
 
+
+// diese funktion wandelt die von mediapipe gelieferte Punkte, die in Bezug auf die Videogröße sind, in Punkte um, die auf der p5 Canvas liegen, damit sie dort manipuliert und gezeichnet werden können. 
 export function landmarkToCanvas(p, point, videoSize) {
     const rect = getCoverRect(p.width, p.height, videoSize.width, videoSize.height);
     const videoX = point.x <= 1 ? point.x * videoSize.width : point.x;
@@ -45,7 +48,7 @@ export function landmarkToCanvas(p, point, videoSize) {
         y: rect.y + (videoY / videoSize.height) * rect.h,
     };
 }
-
+// diese funktion wendet die geschlossene smile manipulation auf die übergebenen Punkte an, indem sie die y-Position der Punkte entsprechend den definierten Werten in mouthConfig.js anpasst. Es werden verschiedene Bereiche des Mundes und der Wangen manipuliert, um ein Lächeln zu erzeugen.
 function applyClosedSmile(points) {
     const smileWeights = CLOSED_SMILE_WEIGHTS;
     LEFT_SMILE_GROUP.forEach((id, i) => {
@@ -97,7 +100,7 @@ function clamp01(value) {
 function lerp(start, end, amount) {
     return start + (end - start) * amount;
 }
-
+// diese funktion berechnet die Skalierung für den offenen Mund basierend auf der aktuellen Öffnungsweite des Mundes. Sie verwendet eine lineare Interpolation zwischen einem Start- und einem Maximalwert, wobei der Fortschritt durch eine Kurve angepasst wird, um einen natürlicheren Anstieg zu erzeugen.
 function getOpenMouthScale(openAmount, minScale, maxScale) {
     const rawProgress =
         (openAmount - OPEN_MOUTH_SCALE_START_AMOUNT) /
@@ -108,6 +111,7 @@ function getOpenMouthScale(openAmount, minScale, maxScale) {
 
     return lerp(minScale, maxScale, easedProgress);
 }
+// diese funktion berechnet die Mitte des Mundes basierend auf den übergebenen Punkten und den definierten Indizes für die Mundregion. Sie summiert die x- und y-Koordinaten der relevanten Punkte und teilt sie durch die Anzahl der Punkte, um den Durchschnitt zu erhalten, der als Zentrum des Mundes dient.
 export function getMouthBounds(points) {
     const ids = MOUTH_ROI;
     const xs = ids.map(id => points[id].x);
@@ -123,6 +127,7 @@ export function getMouthBounds(points) {
         height: maxY - minY
     };
 }
+
 export function drawScaledMouth(originalPoints, openAmount = MOUTH_OPEN_THRESHOLD) {
     const scaledPoints = originalPoints.map(p => ({
         x: p.x,
@@ -177,6 +182,11 @@ export function createMouthCenterPoint(points) {
             (sum, id) => sum + points[id].y, 0) / ids.length
     };
 }
+
+// diese funktion berechnet die manipulierten Punkte für den Mund basierend auf der aktuellen Öffnungsweite des Mundes. 
+// Wenn der Mund geschlossen ist, wird die geschlossene Smile-Manipulation angewendet. 
+// Wenn der Mund offen ist, werden die Punkte entsprechend skaliert, um den Effekt eines geöffneten Mundes zu erzeugen. 
+// Die Funktion gibt die manipulierten Punkte, den Modus (offen oder geschlossen) und die Öffnungsweite zurück.
 export function createManipulatedMouthPoints(originalPoints) {
     const points = originalPoints.map((p) => ({
         x: p.x,
