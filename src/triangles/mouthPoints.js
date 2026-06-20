@@ -1,0 +1,203 @@
+// aus dieser datei werden die Punkte definiert, die für die Manipulation der Mundregion verwendet werden. 
+// Es gibt verschiedene Gruppen von Punkten, die für unterschiedliche Teile des Mundes und verschiedene Manipulationen relevant sind, wie z.B. die inneren Punkte des Mundes, die Punkte für das Lächeln, die Dreiecke für die Mundregion usw. 
+// Diese Punkte werden in anderen Teilen des Projekts verwendet, um den Mund zu manipulieren und zu verzerren.
+
+import {
+    FACEMESH_TRIANGLES
+} from "./facemeshTriangles.js";
+export const MOUTH_INNER = [
+    78, 95, 88, 178, 87, 14, 317, 402, 318, 324, 308,
+    415, 310, 311, 312, 13, 82, 81, 80, 191
+];
+export const UPPER_SMILE_POINTS = [
+    40,
+    39,
+    37,
+    0,
+    267,
+    269,
+    270
+];
+export const LOWER_SMILE_POINTS = [
+    84,
+    17,
+    314
+];
+export const MOUTH_REGION_TRIANGLES = [
+    // Ring1 unter Lippe
+    [61, 57, 43],
+    [61, 146, 43],
+    [146, 43, 91],
+    [43, 91, 106],
+    [91, 106, 182],
+    [106, 182, 181],
+    [182, 181, 83],
+    [181, 84, 83],
+    [84, 83, 17],
+    [83, 17, 18],
+    [17, 18, 313],
+    [17, 314, 313],
+    [314, 313, 405],
+    [313, 405, 406],
+    [405, 406, 321],
+    [406, 321, 335],
+    [321, 335, 273],
+    [321, 375, 273],
+    [375, 273, 291],
+    [291, 287, 273],
+    // Ring1 über Lippe
+    [57, 186, 185],
+    [186, 185, 40],
+    [186, 92, 40],
+    [92, 40, 39],
+    [92, 39, 165],
+    [165, 39, 167],
+    [167, 39, 37],
+    [37, 167, 164],
+    [37, 164, 0],
+    [164, 0, 267],
+    [164, 393, 267],
+    [267, 393, 269],
+    [269, 393, 391],
+    [391, 269, 322],
+    [322, 269, 270],
+    [270, 322, 410],
+    [410, 270, 409],
+    [409, 410, 287],
+];
+export const PHILTRUM_TRIANGLES = [
+    [165, 167, 97],
+    [167, 97, 2],
+    [2, 164, 167],
+    [2, 164, 393],
+    [2, 326, 393],
+    [326, 393, 391],
+];
+export const MOUTH_SOFT_TRIANGLES = [
+    // ring2
+    [216, 186, 212],
+    [212, 57, 186],
+    [57, 212, 202],
+    [57, 202, 43],
+    [43, 202, 204],
+    [43, 204, 106],
+    [106, 204, 194],
+    [106, 194, 182],
+    [182, 194, 201],
+    [182, 201, 83],
+    [83, 201, 18],
+    [201, 18, 200],
+    [18, 200, 421],
+    [18, 421, 313],
+    [313, 421, 406],
+    [421, 406, 418],
+    [406, 418, 335],
+    [335, 418, 424],
+    [424, 335, 273],
+    [273, 424, 422],
+    [287, 273, 422],
+    [287, 432, 422],
+    [287, 410, 432],
+    [410, 432, 436],
+];
+export const MOUTH_CORNER_TRIANGLES = [
+    // links
+    [92, 186, 216],
+    [216, 186, 57],
+    [216, 57, 212],
+    // rechts
+    [322, 436, 410],
+    [436, 410, 287],
+    [436, 287, 432],
+];
+export const MOUTH_TRIANGLES = [...MOUTH_REGION_TRIANGLES, ...PHILTRUM_TRIANGLES, ...MOUTH_SOFT_TRIANGLES, ...MOUTH_CORNER_TRIANGLES];
+export const LEFT_SMILE_GROUP = [
+    61,
+    146,
+    91,
+    181
+];
+export const RIGHT_SMILE_GROUP = [
+    291,
+    375,
+    321,
+    405
+];
+export const LEFT_CHEEK_SMILE = [
+    57,
+    186,
+    92
+];
+export const RIGHT_CHEEK_SMILE = [
+    287,
+    410,
+    322
+];
+export const LEFT_CORNER_CHAIN = [
+    92,
+    186,
+    57,
+    61
+];
+export const RIGHT_CORNER_CHAIN = [
+    322,
+    410,
+    287,
+    291
+];
+export const OPEN_MOUTH_TRIANGLES = [...MOUTH_REGION_TRIANGLES];
+export const MOUTH_ROI = [
+    61, 185, 40, 39, 37, 0,
+    267, 269, 270, 409, 291,
+    375, 321, 405, 314,
+    17, 84, 181, 91, 146
+];
+export const MOUTH_SCALE_BORDER = [
+    18, 43, 57, 83, 92, 106, 164, 165, 167, 182,
+    186, 273, 287, 313, 322, 335, 391, 393, 406, 410
+];
+export const MOUTH_SCALE_INNER = [
+    0, 11, 12, 13, 14, 15, 16, 17,
+    37, 38, 39, 40, 41, 42,
+    61, 62,
+    72, 73, 74, 76, 77, 78,
+    80, 81, 82, 84, 85, 86, 87, 89, 90, 91,
+    95, 96,
+    146,
+    178, 179, 180, 181, 183, 184, 185,
+    191,
+    267, 268, 269, 270, 271, 272,
+    291, 292,
+    302, 303, 304, 306, 307, 308,
+    310, 311, 312, 314, 315, 316,
+    317, 318, 319, 320, 321,
+    324, 325,
+    375,
+    402, 403, 404, 405, 407, 408, 409,
+    415
+];
+const mouthSet = new Set([...MOUTH_SCALE_BORDER, ...MOUTH_SCALE_INNER]);
+export const MOUTH_SCALE_TRIANGLES = FACEMESH_TRIANGLES.filter(tri => mouthSet.has(tri[0]) && mouthSet.has(tri[1]) && mouthSet.has(tri[2]));
+export const MOUTH_CENTER_ID = 478;
+export const MOUTH_INNER_FILL_TRIANGLES = [
+    [78, 95, 478],
+    [95, 88, 478],
+    [88, 178, 478],
+    [178, 87, 478],
+    [87, 14, 478],
+    [14, 317, 478],
+    [317, 402, 478],
+    [402, 318, 478],
+    [318, 324, 478],
+    [324, 308, 478],
+    [308, 415, 478],
+    [415, 310, 478],
+    [310, 311, 478],
+    [311, 312, 478],
+    [312, 13, 478],
+    [13, 82, 478],
+    [82, 81, 478],
+    [81, 80, 478],
+    [80, 191, 478],
+    [191, 78, 478],
+];
