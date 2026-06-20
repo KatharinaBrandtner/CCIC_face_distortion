@@ -1,7 +1,7 @@
 :root {
-  --face-width: 28vw;
-  --face-height: 60vh;
-  --face-top: 52%;
+  --face-width: 70vw; /* Schmaler, da Hochformat */
+  --face-height: 50vh; /* Etwas kleiner, um Platz zu lassen */
+  --face-top: 50%; /* Zentriert im Hochformat */
 }
 
 body {
@@ -16,37 +16,24 @@ body {
   position: relative;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
+  background: black;
 }
 
-#webcam {
+/* p5 Canvas */
+#p5-container {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scaleX(-1);
+  z-index: 1;
 }
 
+#p5-container canvas {
+  display: block;
+}
+
+/* NICHT benutzen, sonst verdeckt es wieder alles */
 .dark-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-
-  mask: radial-gradient(
-    ellipse calc(var(--face-width) / 2) calc(var(--face-height) / 2)
-    at 50% var(--face-top),
-    transparent 0%,
-    transparent 99%,
-    black 100%
-  );
-
-  -webkit-mask: radial-gradient(
-    ellipse calc(var(--face-width) / 2) calc(var(--face-height) / 2)
-    at 50% var(--face-top),
-    transparent 0%,
-    transparent 99%,
-    black 100%
-  );
+  display: none;
 }
 
 .headline {
@@ -56,32 +43,45 @@ body {
   transform: translateX(-50%);
   width: 100%;
   text-align: center;
-  z-index: 2;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .headline h1 {
   margin: 0;
-  font-size: 4vw;
+  font-size: 7vw;
   font-weight: 800;
   letter-spacing: 0.08em;
 }
 
+/* Neue funktionierende Aussparung */
 .face-window {
   position: absolute;
   top: var(--face-top);
   left: 50%;
+
   width: var(--face-width);
   height: var(--face-height);
+
   transform: translate(-50%, -50%);
 
   border: 3px solid rgba(255, 255, 255, 0.9);
   border-radius: 50%;
-  z-index: 2;
+
+  /*
+    Das macht die Abdunklung außen.
+    Innen bleibt frei.
+  */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+
+  z-index: 5;
+  pointer-events: none;
+
+  opacity: 1;
+  visibility: visible;
 }
-#overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 3;
+
+.face-window.is-hidden {
+  opacity: 0;
+  visibility: hidden;
 }
