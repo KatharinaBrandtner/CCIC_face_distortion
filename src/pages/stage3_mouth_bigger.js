@@ -1,4 +1,4 @@
-const p5 = window.p5;
+import p5 from 'p5';
 import {
     waitForOpenCV
 } from "../opencvReady.js";
