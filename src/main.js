@@ -24,6 +24,7 @@ import {
   drawAnalysisOverlay,
   drawMoodTint,
   drawMoodResultPanel,
+  getMoodColor
 } from './drawing.js';
 import { runManipulation } from './pages/manupulated.js';
 
@@ -57,17 +58,21 @@ const FACE_DETECTION_DELAY = 1500;
 // const FACE_DETECTION_DELAY = 1500;
 
 let analysisStartTime = 0;
-const ANALYSIS_DURATION = 1000;
+const ANALYSIS_DURATION = 3500;
 // const ANALYSIS_DURATION = 3500;
 
 // bevor manipulating einsetzt
 let analyzedStartTime = 0;
-const RESULT_DISPLAY_DURATION = 1000;
-// const RESULT_DISPLAY_DURATION = 10000;
+const RESULT_DISPLAY_DURATION = 1500;
+// const RESULT_DISPLAY_DURATION = 1500;
 
 let manipulationStartTime = 0;
-const MANIPULATION_DURATION = 1000;
+const MANIPULATION_DURATION = 5000;
 // const MANIPULATION_DURATION = 3000;
+const sparkles = [];
+
+let manipulatedStartTime = 0;
+
 
 function updateFaceWindowVisibility(appState) {
   const faceWindow = document.querySelector('.face-window');
@@ -106,6 +111,135 @@ const sketch = (p) => {
     appState = 'searching';
   };
 
+  function drawStar(p, x, y, outerRadius, innerRadius) {
+  p.beginShape();
+
+  for (let i = 0; i < 8; i++) {
+    const angle = i * p.PI / 4 - p.HALF_PI;
+
+    const r =
+      i % 2 === 0
+        ? outerRadius
+        : innerRadius;
+
+    p.vertex(
+      x + p.cos(angle) * r,
+      y + p.sin(angle) * r
+    );
+  }
+
+  p.endShape(p.CLOSE);
+}
+
+function drawSparkle(p, x, y, size, alpha) {
+  p.push();
+
+  p.noStroke();
+
+  // Glow groß
+  p.fill(0, 255, 55, alpha * 0.12);
+  drawStar(
+    p,
+    x,
+    y,
+    size * 2.2,
+    size * 0.08
+  );
+
+  // Glow mittel
+  p.fill(0, 255, 55, alpha * 0.25);
+  drawStar(
+    p,
+    x,
+    y,
+    size * 1.6,
+    size * 0.08
+  );
+
+  // Glow klein
+  p.fill(0, 255, 55, alpha * 0.5);
+  drawStar(
+    p,
+    x,
+    y,
+    size * 1.2,
+    size * 0.08
+  );
+
+  // Kern
+  p.fill(0, 255, 55, alpha);
+  drawStar(
+    p,
+    x,
+    y,
+    size,
+    size * 0.08
+  );
+
+  p.pop();
+}
+
+
+function lerpColorObject(p, from, to, amount) {
+  return {
+    r: p.lerp(from.r, to.r, amount),
+    g: p.lerp(from.g, to.g, amount),
+    b: p.lerp(from.b, to.b, amount),
+  };
+}
+
+function getFacePointAlpha(p) {
+
+  if (appState === 'preAnalyzing') {
+    return 255;
+  }
+
+  if (appState === 'analyzed') {
+
+    const elapsed =
+      p.millis() - analyzedStartTime;
+
+    const t = p.constrain(
+      elapsed / RESULT_DISPLAY_DURATION,
+      0,
+      1
+    );
+
+    return p.lerp(255, 128, t);
+  }
+
+  if (appState === 'manipulating') {
+
+    const elapsed =
+      p.millis() - manipulationStartTime;
+
+    const t = p.constrain(
+      elapsed / MANIPULATION_DURATION,
+      0,
+      1
+    );
+
+    return p.lerp(128, 255, t);
+  }
+
+  if (appState === 'manipulated') {
+
+    const elapsed =
+      p.millis() - manipulatedStartTime;
+
+    const t = p.constrain(
+      elapsed / 1000,
+      0,
+      1
+    );
+
+    return p.lerp(255, 0, t);
+  }
+
+  return 255;
+}
+
+
   p.draw = () => {
     p.clear();
     p.background(0);
@@ -131,13 +265,27 @@ const sketch = (p) => {
 
     // Kamera + Facepoints gemeinsam spiegeln
     drawMirroredCameraLayer(p, () => {
-      drawCamera(p, video, videoSize);
+  drawCamera(p, video, videoSize);
 
-      if (face) {
-        drawFacePoints(p, face, videoSize);
-      }
+  const facePointAlpha =
+  getFacePointAlpha(p);
 
-    });
+
+
+  if (
+    face &&
+    facePointAlpha > 0 &&
+    appState !== 'loading' &&
+    appState !== 'searching'
+  ) {
+    drawFacePoints(
+      p,
+      face,
+      videoSize,
+      facePointAlpha
+    );
+  }
+});
 
     // Wenn kein Gesicht da ist
     if (!faceDetected && appState === 'searching') {
@@ -166,8 +314,10 @@ const sketch = (p) => {
     if (appState === 'preAnalyzing') {
       const elapsed = p.millis() - analysisStartTime;
       const progress = p.constrain(elapsed / ANALYSIS_DURATION, 0, 1);
-
+drawMoodTint(p, { label: 'preanalyzing' }, appState);
       drawAnalysisOverlay(p, progress);
+
+      
 
       if (progress >= 1 && !moodAnalyzed && isMoodDetectionReady()) {
         appState = 'analyzing';
@@ -181,6 +331,7 @@ const sketch = (p) => {
 
           console.log('Mood locked:', lockedMood);
         });
+      
       }
 
       return;
@@ -228,23 +379,167 @@ const sketch = (p) => {
     // Schritt 5: Manipulation
     if (appState === 'manipulating') {
 
-      drawMoodTint(p, { label: 'angry' }, appState);
-
-      drawMoodResultPanel(
-        p,
-       { label: 'angry' },
-        appState,
-        face,
-        videoSize,
-        lockedPerfectFaceScore
-      );
-
+      const gradientMood = {
+        label: ``
+      };
+      console.log(gradientMood.label);
       const elapsed = p.millis() - manipulationStartTime;
 
+const optimizationProgress = p.constrain(
+  elapsed / MANIPULATION_DURATION,
+  0,
+  1
+);
+
+
+const moodColor =
+  getMoodColor(lockedMood);
+
+const gradientColor =
+  getMoodColor({
+    label: `gradient${lockedMood.label}`
+  });
+
+const manipulatedColor =
+  getMoodColor({
+    label: 'manipulated'
+  });
+
+let currentTintColor;
+
+if (optimizationProgress < 0.5) {
+
+  const localProgress =
+    optimizationProgress * 2;
+
+  currentTintColor =
+    lerpColorObject(
+      p,
+      moodColor,
+      gradientColor,
+      localProgress
+    );
+
+} else {
+
+  const localProgress =
+    (optimizationProgress - 0.5) * 2;
+
+  currentTintColor =
+    lerpColorObject(
+      p,
+      gradientColor,
+      manipulatedColor,
+      localProgress
+    );
+}
+
+drawMoodTint(
+  p,
+  lockedMood,
+  appState,
+  currentTintColor
+);
+
+drawMoodResultPanel(
+  p,
+  lockedMood,
+  appState,
+  face,
+  videoSize,
+  lockedPerfectFaceScore,
+  currentTintColor
+);
+
+
+const optimizationPercent =
+  Math.floor(optimizationProgress * 100);
+
+
+
+
+
+if (p.frameCount % 19 === 0) {
+  sparkles.push({
+    x: p.random(
+      p.width * 0.2,
+      p.width * 0.8
+    ),
+
+    y: p.random(
+      p.height * 0.15,
+      p.height * 0.8
+    ),
+
+    size: p.random(30, 80),
+
+    age: 0,
+    maxAge: p.random(120, 200)
+  });
+}
+
+for (let i = sparkles.length - 1; i >= 0; i--) {
+  const sparkle = sparkles[i];
+
+  sparkle.age++;
+
+  const life =
+    sparkle.age / sparkle.maxAge;
+
+  const sparkleAlpha =
+    Math.sin(life * Math.PI) * 255;
+
+  const currentSize =
+    sparkle.size *
+    Math.sin(life * Math.PI);
+
+  drawSparkle(
+    p,
+    sparkle.x,
+    sparkle.y,
+    currentSize,
+    sparkleAlpha
+  );
+
+  if (sparkle.age >= sparkle.maxAge) {
+    sparkles.splice(i, 1);
+  }
+}
+
+
+p.fill(255);
+p.noStroke();
+
+p.textAlign(
+  p.CENTER,
+  p.CENTER
+);
+
+p.textSize(52);
+
+p.text(
+  `${optimizationPercent}%`,
+  p.width / 2,
+  130
+);
+
+p.textSize(22);
+
+p.text(
+  'OPTIMIZING SUBJECT',
+  p.width / 2,
+  180
+);
+
+
+
+
       if (elapsed >= MANIPULATION_DURATION) {
-        appState = 'manipulated';
-        console.log('APP STATE MANIPULATING RUNS');
-      }
+  appState = 'manipulated';
+  manipulatedStartTime = p.millis();
+
+  console.log('APP STATE MANIPULATING RUNS');
+}
 
       return;
     }
@@ -258,11 +553,12 @@ const sketch = (p) => {
         videoSize
       );
 
-      drawMoodTint(p, { label: 'happy' }, appState);
+      drawMoodTint(p, { label: 'manipulated' }, appState);
+      
 
       drawMoodResultPanel(
         p,
-        { label: 'happy' },
+        { label: 'manipulated' },
         appState,
         face,
         videoSize,
