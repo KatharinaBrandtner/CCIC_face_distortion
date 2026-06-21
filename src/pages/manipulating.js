@@ -1,196 +1,211 @@
 
-// in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
 // die imports usw verweisen dann noch auf die restlichen nötigen dateien
 
 import p5 from 'p5';
 
 import { waitForOpenCV } from "../opencvReady.js";
+import { getMoodColor } from '../drawing.js';
 
-import {
-    setupFaceTracking,
-    getFaces,
-    getVideo,
-    getVideoSize,
-    hasFace,
-    isFaceTrackingReady,
-} from "../faceTracking.js";
-
-import {
-    drawCamera,
-    drawStatus,
-} from "../drawing.js";
-
-import {
-    warpTriangle,
-} from "../effects/triangleWarp.js";
-
-import {
-    landmarkToCanvas,
-    createManipulatedPoints,
-} from "../other/eyeMath.js";
-
-import {
-    ALL_TRIANGLES,
-} from "../triangles/eyeConstants.js";
-
-import {
-    createManipulatedMouthPoints,
-    drawScaledMouth,
-    createMouthCenterPoint,
-} from "../other/mouthMath.js";
-
-import {
-    MOUTH_TRIANGLES,
-    MOUTH_SCALE_TRIANGLES,
-    MOUTH_INNER_FILL_TRIANGLES,
-} from "../triangles/mouthPoints.js";
-
-function clonePoints(points) {
-    return points.map((point) => ({
-        x: point.x,
-        y: point.y,
-    }));
-}
-export function runManipulation( p, face, videoSize) {   
-    p.push();
-    p.translate(p.width, 0);
-    p.scale(-1, 1); 
-        
-// hier werden die kamera pixel in points umgewandelt, die dann manipuliert werden können
-        const originalPoints = face.keypoints.map((pt) =>
-            landmarkToCanvas(p, pt, videoSize)
-        );
-
-        // hier werden die originalen Punkte gespiegelt, damit die Manipulation auf der gespiegelten Kamera durchgeführt wird, was für den Nutzer intuitiver ist
-        const mirroredPoints = originalPoints.map((pt) => ({
-            x: p.width - pt.x,
-            y: pt.y,
-        }));
+const sparkles = [];
 
 
 
-// augen manipulation
-        const eyePoints = createManipulatedPoints(mirroredPoints);
-// mund manipulation
-        const mouthResult = createManipulatedMouthPoints(mirroredPoints);
-        const mouthPoints = mouthResult.points;
-        const mouthMode = mouthResult.mode;
-        const openAmount = mouthResult.openAmount;
 
-        const finalPoints = clonePoints(eyePoints);
-// zsm führend von eye und mouth manipulation, damit beide gleichzeitig gerendert werden können
-        for (let i = 0; i < mouthPoints.length; i++) {
-            if (mouthPoints[i]) {
-                finalPoints[i] = mouthPoints[i];
-            }
-        }
-// source und destination matrizen für opencv
-        const srcMat = cv.imread(p.canvas);
-        const dstMat = srcMat.clone();
+export function getManipulationTintColor(
+  p,
+  lockedMood,
+  optimizationProgress
+) {
 
-        try {
-            for (const tri of ALL_TRIANGLES) {
-                const srcTriangle = tri.map((id) => mirroredPoints[id]);
-                const dstTriangle = tri.map((id) => eyePoints[id]);
+  const moodColor =
+    getMoodColor(lockedMood);
 
-                if (
-                    srcTriangle.some((pt) => !pt) ||
-                    dstTriangle.some((pt) => !pt)
-                ) {
-                    continue;
-                }
-// hier wird die eigentliche Verzerrung durchgeführt, indem die Dreiecke von der Originalposition zur neuen Position verzerrt werden
-                warpTriangle(
-                    srcMat,
-                    dstMat,
-                    srcTriangle,
-                    dstTriangle
-                );
-            }
+  const gradientColor =
+    getMoodColor({
+      label: `gradient${lockedMood.label}`
+    });
 
-            if (mouthMode === "open") {
-                const scaledPoints = drawScaledMouth(mirroredPoints, openAmount);
+  const manipulatedColor =
+    getMoodColor({
+      label: 'manipulated'
+    });
 
-                const originalWithCenter = [
-                    ...mirroredPoints,
-                    createMouthCenterPoint(mirroredPoints),
-                ];
-// hier ist iwo noch in traingle ehler was den mund angeht 
-                const openMouthTriangles = [
-                    ...MOUTH_SCALE_TRIANGLES,
-                    ...MOUTH_INNER_FILL_TRIANGLES,
-                    [61, 78, 95],
-                    [61, 95, 146],
-                    [146, 95, 78],
-                    [95, 88, 178],
-                    [95, 178, 78],
-                    [88, 178, 87],
-                    [88, 87, 95],
-                    [178, 87, 14],
-                    [95, 87, 178],
-                    [78, 95, 61],
-                    [95, 61, 146],
-                    [95, 88, 146],
-                    [88, 146, 91],
-                    [88, 91, 178],
-                    [61, 95, 88],
-                ];
+  if (optimizationProgress < 0.5) {
 
-                for (const tri of openMouthTriangles) {
-                    const srcTriangle = tri.map((id) => {
-                        if (id === 478) {
-                            return originalWithCenter[478];
-                        }
+    const localProgress =
+      optimizationProgress * 2;
 
-                        return mirroredPoints[id];
-                    });
-
-                    const dstTriangle = tri.map((id) => {
-                        if (id === 478) {
-                            return scaledPoints[478];
-                        }
-
-                        return scaledPoints[id];
-                    });
-
-                    warpTriangle(
-                        srcMat,
-                        dstMat,
-                        srcTriangle,
-                        dstTriangle
-                    );
-                }
-            } else {
-                for (const tri of MOUTH_TRIANGLES) {
-                    const srcTriangle = tri.map((id) => mirroredPoints[id]);
-                    const dstTriangle = tri.map((id) => finalPoints[id]);
-
-                    if (
-                        srcTriangle.some((pt) => !pt) ||
-                        dstTriangle.some((pt) => !pt)
-                    ) {
-                        continue;
-                    }
-
-                    warpTriangle(
-                        srcMat,
-                        dstMat,
-                        srcTriangle,
-                        dstTriangle
-                    );
-                }
-            }
-
-            cv.imshow(p.canvas, dstMat);
-        } catch (error) {
-            console.error("Error in stage4:", error);
-        } finally {
-            srcMat.delete();
-            dstMat.delete();
-        }
-
-        drawStatus(p, "Stage 4");
-         p.pop();
+    return lerpColorObject(
+      p,
+      moodColor,
+      gradientColor,
+      localProgress
+    );
   }
 
+  const localProgress =
+    (optimizationProgress - 0.5) * 2;
+
+  return lerpColorObject(
+    p,
+    gradientColor,
+    manipulatedColor,
+    localProgress
+  );
+}
+
+export function lerpColorObject(p, from, to, amount) {
+  return {
+    r: p.lerp(from.r, to.r, amount),
+    g: p.lerp(from.g, to.g, amount),
+    b: p.lerp(from.b, to.b, amount),
+  };
+}
+
+
+  export function drawStar(p, x, y, outerRadius, innerRadius) {
+  p.beginShape();
+
+  for (let i = 0; i < 8; i++) {
+    const angle = i * p.PI / 4 - p.HALF_PI;
+
+    const r =
+      i % 2 === 0
+        ? outerRadius
+        : innerRadius;
+
+    p.vertex(
+      x + p.cos(angle) * r,
+      y + p.sin(angle) * r
+    );
+  }
+
+  p.endShape(p.CLOSE);
+}
+
+export function drawSparkle(p, x, y, size, alpha) {
+  p.push();
+
+  p.noStroke();
+
+  // Glow groß
+  p.fill(0, 255, 55, alpha * 0.12);
+  drawStar(
+    p,
+    x,
+    y,
+    size * 2.2,
+    size * 0.08
+  );
+
+  // Glow mittel
+  p.fill(0, 255, 55, alpha * 0.25);
+  drawStar(
+    p,
+    x,
+    y,
+    size * 1.6,
+    size * 0.08
+  );
+
+  // Glow klein
+  p.fill(0, 255, 55, alpha * 0.5);
+  drawStar(
+    p,
+    x,
+    y,
+    size * 1.2,
+    size * 0.08
+  );
+
+  // Kern
+  p.fill(0, 255, 55, alpha);
+  drawStar(
+    p,
+    x,
+    y,
+    size,
+    size * 0.08
+  );
+
+  p.pop();
+}
+
+export function drawManipulationSparkles(p){
+    if (p.frameCount % 19 === 0) {
+      sparkles.push({
+        x: p.random(
+          p.width * 0.2,
+          p.width * 0.8
+        ),
     
+        y: p.random(
+          p.height * 0.15,
+          p.height * 0.8
+        ),
+    
+        size: p.random(30, 80),
+    
+        age: 0,
+        maxAge: p.random(120, 200)
+      });
+    }
+    
+    for (let i = sparkles.length - 1; i >= 0; i--) {
+      const sparkle = sparkles[i];
+    
+      sparkle.age++;
+    
+      const life =
+        sparkle.age / sparkle.maxAge;
+    
+      const sparkleAlpha =
+        Math.sin(life * Math.PI) * 255;
+    
+      const currentSize =
+        sparkle.size *
+        Math.sin(life * Math.PI);
+    
+      drawSparkle(
+        p,
+        sparkle.x,
+        sparkle.y,
+        currentSize,
+        sparkleAlpha
+      );
+    
+      if (sparkle.age >= sparkle.maxAge) {
+        sparkles.splice(i, 1);
+      }
+    }
+}
+
+
+export function drawOptimizationUI(
+  p,
+  optimizationPercent
+){
+  p.fill(255);
+  p.noStroke();
+
+  p.textAlign(
+    p.CENTER,
+    p.CENTER
+  );
+
+  p.textSize(52);
+
+  p.text(
+    `${optimizationPercent}%`,
+    p.width / 2,
+    130
+  );
+
+  p.textSize(22);
+
+  p.text(
+    'OPTIMIZING SUBJECT',
+    p.width / 2,
+    180
+  );
+}

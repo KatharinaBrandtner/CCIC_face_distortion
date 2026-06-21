@@ -26,6 +26,7 @@ import {
   drawMoodResultPanel,
   getMoodColor
 } from './drawing.js';
+import { drawStar, drawSparkle, lerpColorObject, drawManipulationSparkles, drawOptimizationUI, getManipulationTintColor } from './pages/manipulating.js';
 import { runManipulation } from './pages/manupulated.js';
 
 import { calculatePerfectFaceScore } from './faceScore.js';
@@ -69,7 +70,7 @@ const RESULT_DISPLAY_DURATION = 1500;
 let manipulationStartTime = 0;
 const MANIPULATION_DURATION = 5000;
 // const MANIPULATION_DURATION = 3000;
-const sparkles = [];
+
 
 let manipulatedStartTime = 0;
 
@@ -111,82 +112,10 @@ const sketch = (p) => {
     appState = 'searching';
   };
 
-  function drawStar(p, x, y, outerRadius, innerRadius) {
-  p.beginShape();
-
-  for (let i = 0; i < 8; i++) {
-    const angle = i * p.PI / 4 - p.HALF_PI;
-
-    const r =
-      i % 2 === 0
-        ? outerRadius
-        : innerRadius;
-
-    p.vertex(
-      x + p.cos(angle) * r,
-      y + p.sin(angle) * r
-    );
-  }
-
-  p.endShape(p.CLOSE);
-}
-
-function drawSparkle(p, x, y, size, alpha) {
-  p.push();
-
-  p.noStroke();
-
-  // Glow groß
-  p.fill(0, 255, 55, alpha * 0.12);
-  drawStar(
-    p,
-    x,
-    y,
-    size * 2.2,
-    size * 0.08
-  );
-
-  // Glow mittel
-  p.fill(0, 255, 55, alpha * 0.25);
-  drawStar(
-    p,
-    x,
-    y,
-    size * 1.6,
-    size * 0.08
-  );
-
-  // Glow klein
-  p.fill(0, 255, 55, alpha * 0.5);
-  drawStar(
-    p,
-    x,
-    y,
-    size * 1.2,
-    size * 0.08
-  );
-
-  // Kern
-  p.fill(0, 255, 55, alpha);
-  drawStar(
-    p,
-    x,
-    y,
-    size,
-    size * 0.08
-  );
-
-  p.pop();
-}
 
 
-function lerpColorObject(p, from, to, amount) {
-  return {
-    r: p.lerp(from.r, to.r, amount),
-    g: p.lerp(from.g, to.g, amount),
-    b: p.lerp(from.b, to.b, amount),
-  };
-}
+
+
 
 function getFacePointAlpha(p) {
 
@@ -379,10 +308,6 @@ drawMoodTint(p, { label: 'preanalyzing' }, appState);
     // Schritt 5: Manipulation
     if (appState === 'manipulating') {
 
-      const gradientMood = {
-        label: ``
-      };
-      console.log(gradientMood.label);
       const elapsed = p.millis() - manipulationStartTime;
 
 const optimizationProgress = p.constrain(
@@ -390,49 +315,12 @@ const optimizationProgress = p.constrain(
   0,
   1
 );
-
-
-const moodColor =
-  getMoodColor(lockedMood);
-
-const gradientColor =
-  getMoodColor({
-    label: `gradient${lockedMood.label}`
-  });
-
-const manipulatedColor =
-  getMoodColor({
-    label: 'manipulated'
-  });
-
-let currentTintColor;
-
-if (optimizationProgress < 0.5) {
-
-  const localProgress =
-    optimizationProgress * 2;
-
-  currentTintColor =
-    lerpColorObject(
+const currentTintColor =
+    getManipulationTintColor(
       p,
-      moodColor,
-      gradientColor,
-      localProgress
+      lockedMood,
+      optimizationProgress
     );
-
-} else {
-
-  const localProgress =
-    (optimizationProgress - 0.5) * 2;
-
-  currentTintColor =
-    lerpColorObject(
-      p,
-      gradientColor,
-      manipulatedColor,
-      localProgress
-    );
-}
 
 drawMoodTint(
   p,
@@ -450,89 +338,14 @@ drawMoodResultPanel(
   lockedPerfectFaceScore,
   currentTintColor
 );
+drawManipulationSparkles(p);
 
-
-const optimizationPercent =
-  Math.floor(optimizationProgress * 100);
-
-
-
-
-
-if (p.frameCount % 19 === 0) {
-  sparkles.push({
-    x: p.random(
-      p.width * 0.2,
-      p.width * 0.8
-    ),
-
-    y: p.random(
-      p.height * 0.15,
-      p.height * 0.8
-    ),
-
-    size: p.random(30, 80),
-
-    age: 0,
-    maxAge: p.random(120, 200)
-  });
-}
-
-for (let i = sparkles.length - 1; i >= 0; i--) {
-  const sparkle = sparkles[i];
-
-  sparkle.age++;
-
-  const life =
-    sparkle.age / sparkle.maxAge;
-
-  const sparkleAlpha =
-    Math.sin(life * Math.PI) * 255;
-
-  const currentSize =
-    sparkle.size *
-    Math.sin(life * Math.PI);
-
-  drawSparkle(
+drawOptimizationUI(
     p,
-    sparkle.x,
-    sparkle.y,
-    currentSize,
-    sparkleAlpha
+    Math.floor(
+      optimizationProgress * 100
+    )
   );
-
-  if (sparkle.age >= sparkle.maxAge) {
-    sparkles.splice(i, 1);
-  }
-}
-
-
-p.fill(255);
-p.noStroke();
-
-p.textAlign(
-  p.CENTER,
-  p.CENTER
-);
-
-p.textSize(52);
-
-p.text(
-  `${optimizationPercent}%`,
-  p.width / 2,
-  130
-);
-
-p.textSize(22);
-
-p.text(
-  'OPTIMIZING SUBJECT',
-  p.width / 2,
-  180
-);
-
-
-
 
       if (elapsed >= MANIPULATION_DURATION) {
   appState = 'manipulated';
