@@ -24,7 +24,10 @@ import {
   drawAnalysisOverlay,
   drawMoodTint,
   drawMoodResultPanel,
+  getMoodColor
 } from './drawing.js';
+import { drawStar, drawSparkle, lerpColorObject, drawManipulationSparkles, drawOptimizationUI, getManipulationTintColor } from './pages/manipulating.js';
+import { runManipulation } from './pages/manupulated.js';
 
 import { calculatePerfectFaceScore } from './faceScore.js';
 
@@ -43,7 +46,7 @@ document.querySelector('#app').innerHTML = `
 `;
 
 let appState = 'loading';
-// loading | searching | preAnalyzing | analyzing | manipulating| manipulated (fehlt noch ist dann die eigentliche Manipulation)
+// loading | searching | preAnalyzing | analyzing | analyzed| manipulating| manipulated 
 
 let lockedMood = null;
 let moodAnalyzed = false;
@@ -53,9 +56,24 @@ let perfectFaceAnalyzed = false;
 
 let faceDetectedTime = null;
 const FACE_DETECTION_DELAY = 1500;
+// const FACE_DETECTION_DELAY = 1500;
 
 let analysisStartTime = 0;
 const ANALYSIS_DURATION = 3500;
+// const ANALYSIS_DURATION = 3500;
+
+// bevor manipulating einsetzt
+let analyzedStartTime = 0;
+const RESULT_DISPLAY_DURATION = 1500;
+// const RESULT_DISPLAY_DURATION = 1500;
+
+let manipulationStartTime = 0;
+const MANIPULATION_DURATION = 5000;
+// const MANIPULATION_DURATION = 3000;
+
+
+let manipulatedStartTime = 0;
+
 
 function updateFaceWindowVisibility(appState) {
   const faceWindow = document.querySelector('.face-window');
@@ -94,6 +112,63 @@ const sketch = (p) => {
     appState = 'searching';
   };
 
+
+
+
+
+
+function getFacePointAlpha(p) {
+
+  if (appState === 'preAnalyzing') {
+    return 255;
+  }
+
+  if (appState === 'analyzed') {
+
+    const elapsed =
+      p.millis() - analyzedStartTime;
+
+    const t = p.constrain(
+      elapsed / RESULT_DISPLAY_DURATION,
+      0,
+      1
+    );
+
+    return p.lerp(255, 128, t);
+  }
+
+  if (appState === 'manipulating') {
+
+    const elapsed =
+      p.millis() - manipulationStartTime;
+
+    const t = p.constrain(
+      elapsed / MANIPULATION_DURATION,
+      0,
+      1
+    );
+
+    return p.lerp(128, 255, t);
+  }
+
+  if (appState === 'manipulated') {
+
+    const elapsed =
+      p.millis() - manipulatedStartTime;
+
+    const t = p.constrain(
+      elapsed / 1000,
+      0,
+      1
+    );
+
+    return p.lerp(255, 0, t);
+  }
+
+  return 255;
+}
+
+
   p.draw = () => {
     p.clear();
     p.background(0);
@@ -119,17 +194,27 @@ const sketch = (p) => {
 
     // Kamera + Facepoints gemeinsam spiegeln
     drawMirroredCameraLayer(p, () => {
-      drawCamera(p, video, videoSize);
+  drawCamera(p, video, videoSize);
 
-      if (face) {
-        drawFacePoints(p, face, videoSize);
-      }
+  const facePointAlpha =
+  getFacePointAlpha(p);
 
-      // später hier auch Face-Manipulation rein:
-      // if (appState === 'manipulating' && face) {
-      //   drawManipulation(p, face, videoSize, lockedMood);
-      // }
-    });
+
+
+  if (
+    face &&
+    facePointAlpha > 0 &&
+    appState !== 'loading' &&
+    appState !== 'searching'
+  ) {
+    drawFacePoints(
+      p,
+      face,
+      videoSize,
+      facePointAlpha
+    );
+  }
+});
 
     // Wenn kein Gesicht da ist
     if (!faceDetected && appState === 'searching') {
@@ -158,8 +243,10 @@ const sketch = (p) => {
     if (appState === 'preAnalyzing') {
       const elapsed = p.millis() - analysisStartTime;
       const progress = p.constrain(elapsed / ANALYSIS_DURATION, 0, 1);
-
+drawMoodTint(p, { label: 'preanalyzing' }, appState);
       drawAnalysisOverlay(p, progress);
+
+      
 
       if (progress >= 1 && !moodAnalyzed && isMoodDetectionReady()) {
         appState = 'analyzing';
@@ -167,10 +254,13 @@ const sketch = (p) => {
 
         detectMoodOnce(video).then((mood) => {
           lockedMood = mood;
-          appState = 'manipulating';
+          appState = 'analyzed';
+
+          analyzedStartTime = p.millis();
 
           console.log('Mood locked:', lockedMood);
         });
+      
       }
 
       return;
@@ -183,8 +273,8 @@ const sketch = (p) => {
       return;
     }
 
-    // Schritt 4: Ergebnis / Manipulation
-    if (appState === 'manipulating' && lockedMood) {
+    // Schritt 4: Ergebnis anzeigen
+    if (appState === 'analyzed' && lockedMood) {
       if (face && !perfectFaceAnalyzed) {
         lockedPerfectFaceScore = calculatePerfectFaceScore(face, videoSize);
         perfectFaceAnalyzed = true;
@@ -192,10 +282,8 @@ const sketch = (p) => {
         console.log('Locked Perfect Face Score:', lockedPerfectFaceScore);
       }
 
-      // Mood-Farbfilter nicht spiegeln, weil es ein UI/Overlay ist
       drawMoodTint(p, lockedMood, appState);
 
-      // Ergebnis-Panel nicht spiegeln, sonst wäre Text falsch herum
       drawMoodResultPanel(
         p,
         lockedMood,
@@ -205,7 +293,93 @@ const sketch = (p) => {
         lockedPerfectFaceScore
       );
 
+      const elapsed = p.millis() - analyzedStartTime;
+
+      if (elapsed >= RESULT_DISPLAY_DURATION) {
+        appState = 'manipulating';
+        manipulationStartTime = p.millis();
+        console.log('APP STATE ANALYZED RUNS');
+      }
+
       return;
+    }
+
+
+    // Schritt 5: Manipulation
+    if (appState === 'manipulating') {
+
+      const elapsed = p.millis() - manipulationStartTime;
+
+const optimizationProgress = p.constrain(
+  elapsed / MANIPULATION_DURATION,
+  0,
+  1
+);
+const currentTintColor =
+    getManipulationTintColor(
+      p,
+      lockedMood,
+      optimizationProgress
+    );
+
+drawMoodTint(
+  p,
+  lockedMood,
+  appState,
+  currentTintColor
+);
+
+drawMoodResultPanel(
+  p,
+  lockedMood,
+  appState,
+  face,
+  videoSize,
+  lockedPerfectFaceScore,
+  currentTintColor
+);
+drawManipulationSparkles(p);
+
+drawOptimizationUI(
+    p,
+    Math.floor(
+      optimizationProgress * 100
+    )
+  );
+
+      if (elapsed >= MANIPULATION_DURATION) {
+  appState = 'manipulated';
+  manipulatedStartTime = p.millis();
+
+  console.log('APP STATE MANIPULATING RUNS');
+}
+
+      return;
+    }
+
+    // Schritt 6: Manipulated
+    if (appState === 'manipulated') {
+
+      runManipulation(
+        p,
+        face,
+        videoSize
+      );
+
+      drawMoodTint(p, { label: 'manipulated' }, appState);
+      
+
+      drawMoodResultPanel(
+        p,
+        { label: 'manipulated' },
+        appState,
+        face,
+        videoSize,
+        lockedPerfectFaceScore
+      );
+      console.log('APP STATE MANIPULATED RUNS');
+      return;
+      
     }
     
   };

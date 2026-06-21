@@ -37,7 +37,7 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     return (
       appState !== 'loading' &&
       appState !== 'searching' &&
-      appState !== 'preanalyzing' &&
+      // appState !== 'preanalyzing' &&
       mood &&
       mood.label &&
       mood.label !== 'unknown'
@@ -53,29 +53,39 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     return getMoodVisuals(mood).color;
   }
   
-  export function drawFacePoints(p, face, videoSize, mood, appState) {
-    if (!face || !face.keypoints || !videoSize) return;
-  
-    const rect = getCoverRect(
-      p.width,
-      p.height,
-      videoSize.width,
-      videoSize.height
-    );
-  
-    const [r, g, b] = getInterfaceColor(mood, appState);
-  
-    p.noStroke();
-    p.fill(r, g, b);
-  
-    for (const point of face.keypoints) {
-      const x = rect.x + (point.x / videoSize.width) * rect.w;
-      const y = rect.y + (point.y / videoSize.height) * rect.h;
-  
-      p.circle(x, y, 3);
-    }
+export function drawFacePoints(
+  p,
+  face,
+  videoSize,
+  alpha = 255
+) {
+  if (!face || !face.keypoints || !videoSize) return;
+
+  const rect = getCoverRect(
+    p.width,
+    p.height,
+    videoSize.width,
+    videoSize.height
+  );
+
+  p.noStroke();
+  p.fill(255, alpha);
+
+  for (const point of face.keypoints) {
+    const x =
+      rect.x +
+      (point.x / videoSize.width) *
+      rect.w;
+
+    const y =
+      rect.y +
+      (point.y / videoSize.height) *
+      rect.h;
+
+    p.circle(x, y, 2);
   }
-  
+}
+
   export function drawStatus(p, text, mood, appState) {
     const [r, g, b] = getInterfaceColor(mood, appState);
   
@@ -128,14 +138,6 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   
     p.push();
   
-    // Vignette Effect (Dark Corners)
-    const vignetteAlpha = 100; // Adjust transparency of the vignette
-    const vignetteSize = Math.max(p.width, p.height) * 1.5; // Size of the vignette
-  
-    p.noStroke();
-    p.fill(0, 0, 0, vignetteAlpha);
-    p.ellipseMode(p.CENTER);
-    p.ellipse(p.width / 2, p.height / 2, vignetteSize, vignetteSize);
   
     // Panel Background
     p.noStroke();
@@ -187,7 +189,7 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     p.pop();
 }
   export function getMoodVisuals(mood) {
-    const label = mood?.label || 'neutral';
+     const label = (mood?.label || 'neutral').toLowerCase();
   
     const moodMap = {
       happy: {
@@ -196,15 +198,15 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
       },
       neutral: {
         label: 'NEUTRAL',
-        color: { r: 255, g: 220, b: 120 },
+        color: { r: 210, g: 210, b: 210 },
       },
       sad: {
         label: 'SAD',
-        color: { r: 90, g: 150, b: 255 },
+        color: { r: 90, g: 140, b: 255 }, 
       },
       angry: {
         label: 'ANGRY',
-        color: { r: 255, g: 90, b: 90 },
+        color: { r: 255, g: 70, b: 70 },
       },
       surprised: {
         label: 'SURPRISED',
@@ -216,16 +218,170 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
       },
       disgusted: {
         label: 'DISGUSTED',
-        color: { r: 140, g: 220, b: 120 },
+        color: { r: 120, g: 170, b: 90 },
       },
       unknown: {
         label: 'UNKNOWN',
         color: { r: 180, g: 180, b: 180 },
       },
+
+      gradienthappy: {
+        label: 'HAPPY',
+        color: { r: 131, g: 219, b: 70 },
+      },
+      gradientneutral: {
+        label: 'NEUTRAL',
+        color: { r: 110, g: 220, b: 133 },
+      },
+
+      gradientsad: {
+        label: 'SAD',
+        color: { r: 49, g: 180, b: 161 },
+      },
+
+      gradientangry: {
+        label: 'ANGRY',
+        color: { r: 96, g: 170, b: 58 },
+      },
+
+      gradientsurprised: {
+        label: 'SURPRISED',
+        color: { r: 66, g: 224, b: 163 },
+      },
+
+      gradientfearful: {
+        label: 'FEARFUL',
+        color: { r: 89, g: 175, b: 150 },
+      },
+
+      gradientdisgusted: {
+        label: 'DISGUSTED',
+        color: { r: 67, g: 196, b: 72 },
+      },
+
+      gradientunknown: {
+        label: 'UNKNOWN',
+        color: { r: 110, g: 198, b: 129 },
+      },
+
+      preanalyzing: {
+        label: 'PREANALYZING',
+        color: { r: 28, g: 28, b: 28 },
+      },
+
+      manipulated: {
+        label: 'MANIPULATED',
+        color: { r: 0, g: 228, b: 49 },
+      },
+
     };
+
     return moodMap[label] || moodMap.neutral;}
   
-  export function getHappinessScore(mood) {
+  
+  export function drawMoodTint(
+  p,
+  mood,
+  appState,
+  overrideColor = null
+) {
+
+  if (!shouldShowMoodVisuals(appState, mood)) return;
+
+  const ctx = p.drawingContext;
+
+  const visuals = getMoodVisuals(mood);
+
+  const { r, g, b } = overrideColor || visuals.color;
+
+  const label =
+    (mood?.label || '').toLowerCase();
+
+  const cx = p.width / 2;
+  const cy = p.height / 2;
+
+  const maxRadius = Math.sqrt(
+    cx * cx + cy * cy
+  );
+
+  const gradient =
+    ctx.createRadialGradient(
+      cx,
+      cy,
+      0,
+      cx,
+      cy,
+      maxRadius
+    );
+
+  // PRE ANALYZING = dunkle Vignette
+  if (label === 'preanalyzing') {
+
+    gradient.addColorStop(
+      0.0,
+      'rgba(0,0,0,0)'
+    );
+
+    gradient.addColorStop(
+      0.5,
+      'rgba(0,0,0,0.10)'
+    );
+
+    gradient.addColorStop(
+      0.75,
+      'rgba(0,0,0,0.35)'
+    );
+
+    gradient.addColorStop(
+      1.0,
+      'rgba(0,0,0,0.80)'
+    );
+
+  } else {
+
+    // Normale Mood-Tints
+
+    gradient.addColorStop(
+      0.0,
+      `rgba(${r}, ${g}, ${b}, 0.00)`
+    );
+
+    gradient.addColorStop(
+      0.45,
+      `rgba(${r}, ${g}, ${b}, 0.15)`
+    );
+
+    gradient.addColorStop(
+      0.75,
+      `rgba(${r}, ${g}, ${b}, 0.40)`
+    );
+
+    gradient.addColorStop(
+      1.0,
+      `rgba(${r}, ${g}, ${b}, 0.80)`
+    );
+  }
+
+  ctx.save();
+
+  if (label === 'preanalyzing') {
+    ctx.globalCompositeOperation = 'source-over';
+  } else {
+    ctx.globalCompositeOperation = 'screen';
+  }
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(
+    0,
+    0,
+    p.width,
+    p.height
+  );
+
+  ctx.restore();
+}
+
+export function getHappinessScore(mood) {
     if (!mood) return 0;
   
     if (typeof mood.happyScore === 'number') {
@@ -235,44 +391,6 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     if (!mood.expressions) return 0;
   
     return Math.round((mood.expressions.happy || 0) * 100);
-  }
-  
-  export function drawMoodTint(p, mood, appState) {
-    if (!shouldShowMoodVisuals(appState, mood)) return;
-  
-    const ctx = p.drawingContext;
-  
-    const visuals = getMoodVisuals(mood);
-    const { r, g, b } = visuals.color;
-  
-    const cx = p.width / 2;
-    const cy = p.height / 2;
-  
-    // Radius so groß, dass die Ecken erreicht werden
-    const maxRadius = Math.sqrt(cx * cx + cy * cy);
-    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, maxRadius);
-  
-    // Mitte fast transparent
-    gradient.addColorStop(0.0, `rgba(${r}, ${g}, ${b}, 0.00)`);
-  
-    // Zwischenbereich leicht sichtbar
-    gradient.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, 0.15)`);
-  
-    // Außen stärker
-    gradient.addColorStop(0.75, `rgba(${r}, ${g}, ${b}, 0.40)`);
-  
-    // Ecken am stärksten
-    gradient.addColorStop(1.0, `rgba(${r}, ${g}, ${b}, 0.80)`);
-  
-    ctx.save();
-  
-    // wirkt mehr wie ein Farbfilter statt wie eine platte Fläche
-    ctx.globalCompositeOperation = 'screen';
-  
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, p.width, p.height);
-  
-    ctx.restore();
   }
 
   export function getPanelUnderFace(p, panelH = 300) {
@@ -304,25 +422,31 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     appState,
     face,
     videoSize,
-    lockedPerfectFaceScore
-  ) {
+    perfectFaceScore,
+    overrideColor = null
+  ){
     if (!shouldShowMoodVisuals(appState, mood)) return;
   
     const visuals = getMoodVisuals(mood);
-    const { r, g, b } = visuals.color;
+
+    const {
+      r,
+      g,
+      b
+    } = overrideColor || visuals.color;
   
     const detectedMood = visuals.label;
     const happinessScore = getHappinessScore(mood);
   
     let perfectFaceValue = null;
-  
-    if (typeof lockedPerfectFaceScore === 'number') {
-      perfectFaceValue = lockedPerfectFaceScore;
+
+    if (typeof perfectFaceScore === 'number') {
+      perfectFaceValue = perfectFaceScore;
     } else if (
-      lockedPerfectFaceScore &&
-      typeof lockedPerfectFaceScore.total === 'number'
+      perfectFaceScore &&
+      typeof perfectFaceScore.total === 'number'
     ) {
-      perfectFaceValue = lockedPerfectFaceScore.total;
+      perfectFaceValue = perfectFaceScore.total;
     }
   
     const panel = getPanelUnderFace(p);
@@ -405,3 +529,7 @@ export function getCoverRect(canvasW, canvasH, videoW, videoH) {
   
     p.pop();
   }
+
+export function getMoodColor(mood) {
+  return getMoodVisuals(mood).color;
+}

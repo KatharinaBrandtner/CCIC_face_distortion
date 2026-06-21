@@ -51,44 +51,28 @@ function clonePoints(points) {
         y: point.y,
     }));
 }
-
-new p5((p) => {
-    p.setup = async () => {
-        p.createCanvas(window.innerWidth, window.innerHeight);
-        p.pixelDensity(1);
-
-        await waitForOpenCV();
-        await setupFaceTracking();
-    };
-
-    p.draw = () => {
-        p.background(0);
-
-        const video = getVideo();
-        const videoSize = getVideoSize();
-
-        if (!video || video.readyState < 2) {
-            drawStatus(p, "Kamera lädt...");
-            return;
-        }
-
-        drawCamera(p, video, videoSize);
-
-        if (!isFaceTrackingReady() || !hasFace()) {
-            drawStatus(p, "Stage 4");
-            return;
-        }
-
-        const face = getFaces()[0];
-        const cv = window.cv;
+export function runManipulation( p, face, videoSize) {   
+    p.push();
+    p.translate(p.width, 0);
+    p.scale(-1, 1); 
+        
 // hier werden die kamera pixel in points umgewandelt, die dann manipuliert werden können
         const originalPoints = face.keypoints.map((pt) =>
             landmarkToCanvas(p, pt, videoSize)
         );
+
+        // hier werden die originalen Punkte gespiegelt, damit die Manipulation auf der gespiegelten Kamera durchgeführt wird, was für den Nutzer intuitiver ist
+        const mirroredPoints = originalPoints.map((pt) => ({
+            x: p.width - pt.x,
+            y: pt.y,
+        }));
+
+
+
 // augen manipulation
-        const eyePoints = createManipulatedPoints(originalPoints);
+        const eyePoints = createManipulatedPoints(mirroredPoints);
 // mund manipulation
-        const mouthResult = createManipulatedMouthPoints(originalPoints);
+        const mouthResult = createManipulatedMouthPoints(mirroredPoints);
         const mouthPoints = mouthResult.points;
         const mouthMode = mouthResult.mode;
         const openAmount = mouthResult.openAmount;
@@ -106,7 +90,7 @@ new p5((p) => {
 
         try {
             for (const tri of ALL_TRIANGLES) {
-                const srcTriangle = tri.map((id) => originalPoints[id]);
+                const srcTriangle = tri.map((id) => mirroredPoints[id]);
                 const dstTriangle = tri.map((id) => eyePoints[id]);
 
                 if (
@@ -125,11 +109,11 @@ new p5((p) => {
             }
 
             if (mouthMode === "open") {
-                const scaledPoints = drawScaledMouth(originalPoints, openAmount);
+                const scaledPoints = drawScaledMouth(mirroredPoints, openAmount);
 
                 const originalWithCenter = [
-                    ...originalPoints,
-                    createMouthCenterPoint(originalPoints),
+                    ...mirroredPoints,
+                    createMouthCenterPoint(mirroredPoints),
                 ];
 // hier ist iwo noch in traingle ehler was den mund angeht 
                 const openMouthTriangles = [
@@ -158,7 +142,7 @@ new p5((p) => {
                             return originalWithCenter[478];
                         }
 
-                        return originalPoints[id];
+                        return mirroredPoints[id];
                     });
 
                     const dstTriangle = tri.map((id) => {
@@ -178,7 +162,7 @@ new p5((p) => {
                 }
             } else {
                 for (const tri of MOUTH_TRIANGLES) {
-                    const srcTriangle = tri.map((id) => originalPoints[id]);
+                    const srcTriangle = tri.map((id) => mirroredPoints[id]);
                     const dstTriangle = tri.map((id) => finalPoints[id]);
 
                     if (
@@ -206,9 +190,7 @@ new p5((p) => {
         }
 
         drawStatus(p, "Stage 4");
-    };
+         p.pop();
+  }
 
-    p.windowResized = () => {
-        p.resizeCanvas(window.innerWidth, window.innerHeight);
-    };
-});
+    
