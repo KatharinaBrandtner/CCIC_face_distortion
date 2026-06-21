@@ -51,6 +51,7 @@ import {
 
 import {
     drawBlush,
+    enhanceLipColor
 } from "../effects/faceTint.js";
 
 const SMOOTHING_STRENGTH = 0.8;
@@ -86,7 +87,14 @@ export function runManipulation( p, face, videoSize) {
         const mouthPoints = mouthResult.points;
         const mouthMode = mouthResult.mode;
         const openAmount = mouthResult.openAmount;
+        let lipColorPoints = mouthPoints;
 
+        if (mouthMode === "open") {
+        lipColorPoints = drawScaledMouth(
+        mirroredPoints,
+        openAmount
+        );
+}
         const finalPoints = clonePoints(eyePoints);
 // zsm führend von eye und mouth manipulation, damit beide gleichzeitig gerendert werden können
         for (let i = 0; i < mouthPoints.length; i++) {
@@ -117,7 +125,6 @@ export function runManipulation( p, face, videoSize) {
                     dstTriangle
                 );
             }
-
             if (mouthMode === "open") {
                 const scaledPoints = drawScaledMouth(mirroredPoints, openAmount);
 
@@ -204,7 +211,7 @@ export function runManipulation( p, face, videoSize) {
             dstMat.delete();
         }
         drawBlush(p, mirroredPoints);
-
+        enhanceLipColor( p, lipColorPoints , 60);
         drawStatus(p, "Stage 4");
          p.pop();
   }
