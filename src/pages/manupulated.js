@@ -49,6 +49,10 @@ import {
     applyFaceSmoothing,
 } from "../effects/faceSmoothing.js";
 
+import {
+    drawBlush,
+} from "../effects/faceTint.js";
+
 const SMOOTHING_STRENGTH = 0.8;
 
 function clonePoints(points) {
@@ -188,17 +192,18 @@ export function runManipulation( p, face, videoSize) {
             }
            applyFaceSmoothing(
               dstMat,
-                mirroredPoints,
+               mirroredPoints,
                SMOOTHING_STRENGTH
            );
-            
             cv.imshow(p.canvas, dstMat);
+
         } catch (error) {
             console.error("Error in stage4:", error);
         } finally {
             srcMat.delete();
             dstMat.delete();
         }
+        drawBlush(p, mirroredPoints);
 
         drawStatus(p, "Stage 4");
          p.pop();

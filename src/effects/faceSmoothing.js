@@ -182,9 +182,9 @@ export function applyFaceSmoothing(faceMat, points, strength = 0.55) {
         cv.bilateralFilter(
             originalRgb,
             smoothedRgb,
-            9,
-            95,
-            95
+            5, 
+            50, 
+            50  
         );
 
         // Punkte in lokale Koordinaten des ROI umrechnen
