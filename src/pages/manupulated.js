@@ -45,6 +45,12 @@ import {
     MOUTH_INNER_FILL_TRIANGLES,
 } from "../triangles/mouthPoints.js";
 
+import {
+    applyFaceSmoothing,
+} from "../effects/faceSmoothing.js";
+
+const SMOOTHING_STRENGTH = 0.8;
+
 function clonePoints(points) {
     return points.map((point) => ({
         x: point.x,
@@ -180,7 +186,12 @@ export function runManipulation( p, face, videoSize) {
                     );
                 }
             }
-
+           applyFaceSmoothing(
+              dstMat,
+                mirroredPoints,
+               SMOOTHING_STRENGTH
+           );
+            
             cv.imshow(p.canvas, dstMat);
         } catch (error) {
             console.error("Error in stage4:", error);
