@@ -183,8 +183,8 @@ export function applyFaceSmoothing(faceMat, points, strength = 0.55) {
             originalRgb,
             smoothedRgb,
             9,
-            65,
-            65
+            95,
+            95
         );
 
         // Punkte in lokale Koordinaten des ROI umrechnen
