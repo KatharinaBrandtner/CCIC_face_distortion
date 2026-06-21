@@ -63,75 +63,124 @@ export function lerpColorObject(p, from, to, amount) {
 }
 
 
-  export function drawStar(p, x, y, outerRadius, innerRadius) {
+export function drawStar(
+  p,
+  x,
+  y,
+  outerRadius,
+  innerRadius = outerRadius * 0.1,
+  armLengthFactor = 0.75
+) {
+
+  const armRadius =
+    outerRadius * armLengthFactor;
+
   p.beginShape();
 
   for (let i = 0; i < 8; i++) {
-    const angle = i * p.PI / 4 - p.HALF_PI;
 
-    const r =
+    const angle =
+      i * p.PI / 4 -
+      p.HALF_PI;
+
+    const radius =
       i % 2 === 0
-        ? outerRadius
+        ? armRadius
         : innerRadius;
 
     p.vertex(
-      x + p.cos(angle) * r,
-      y + p.sin(angle) * r
+      x + p.cos(angle) * radius,
+      y + p.sin(angle) * radius
     );
   }
 
   p.endShape(p.CLOSE);
 }
 
-export function drawSparkle(p, x, y, size, alpha) {
+export function drawSparkle(
+  p,
+  x,
+  y,
+  size,
+  alpha,
+  color
+) {
+
+  const {
+    r,
+    g,
+    b
+  } = color;
+
+  const sizefactor = 0.1
+
   p.push();
 
   p.noStroke();
 
-  // Glow groß
-  p.fill(0, 255, 55, alpha * 0.12);
-  drawStar(
-    p,
-    x,
-    y,
-    size * 2.2,
-    size * 0.08
+  // // riesiger weicher Glow
+
+  p.fill(
+    r,
+    g,
+    b,
+    alpha * 0.05
   );
 
-  // Glow mittel
-  p.fill(0, 255, 55, alpha * 0.25);
   drawStar(
-    p,
-    x,
-    y,
-    size * 1.6,
-    size * 0.08
+  p,
+  x,
+  y,
+  size * 3.5,
+  size * sizefactor
+);
+
+
+  // // mittlerer Glow
+
+  p.fill(
+    r,
+    g,
+    b,
+    alpha * 0.12
   );
 
-  // Glow klein
-  p.fill(0, 255, 55, alpha * 0.5);
   drawStar(
-    p,
-    x,
-    y,
-    size * 1.2,
-    size * 0.08
-  );
+  p,
+  x,
+  y,
+  size * 2.0,
+  size * sizefactor
+);
+
 
   // Kern
-  p.fill(0, 255, 55, alpha);
-  drawStar(
-    p,
-    x,
-    y,
-    size,
-    size * 0.08
+
+  p.drawingContext.shadowBlur =
+  size * 0.4;
+
+p.drawingContext.shadowColor =
+  `rgba(${r},${g},${b},0.8)`;
+
+  p.fill(
+    r,
+    g,
+    b,
+    alpha
   );
+
+  drawStar(
+  p,
+  x,
+  y,
+  size,
+  size * sizefactor
+);
 
   p.pop();
 }
 
-export function drawManipulationSparkles(p){
+export function drawManipulationSparkles(p, currentTintColor) {
     if (p.frameCount % 19 === 0) {
       sparkles.push({
         x: p.random(
@@ -171,8 +220,9 @@ export function drawManipulationSparkles(p){
         sparkle.x,
         sparkle.y,
         currentSize,
-        sparkleAlpha
-      );
+        sparkleAlpha,
+        currentTintColor
+      );     
     
       if (sparkle.age >= sparkle.maxAge) {
         sparkles.splice(i, 1);

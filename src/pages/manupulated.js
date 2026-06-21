@@ -189,7 +189,6 @@ export function runManipulation( p, face, videoSize) {
             dstMat.delete();
         }
 
-        drawStatus(p, "Stage 4");
          p.pop();
   }
 

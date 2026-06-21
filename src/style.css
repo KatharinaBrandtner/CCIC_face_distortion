@@ -4,6 +4,20 @@
   --face-top: 50%; /* Zentriert im Hochformat */
 }
 
+/* .playfair-display-<uniquifier> {
+  font-family: "Playfair Display", serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+}
+
+.urbanist-<uniquifier> {
+  font-family: "Urbanist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+} */
+
 body {
   margin: 0;
   background: black;
@@ -36,24 +50,6 @@ body {
   display: none;
 }
 
-.headline {
-  position: absolute;
-  top: 3vh;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  text-align: center;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.headline h1 {
-  margin: 0;
-  font-size: 7vw;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
 /* Neue funktionierende Aussparung */
 .face-window {
   position: absolute;
@@ -84,4 +80,141 @@ body {
 .face-window.is-hidden {
   opacity: 0;
   visibility: hidden;
+}
+
+
+
+/* styling tecte */
+.brand-ui {
+  position: absolute;
+
+  top: 48px;
+  left: 48px;
+
+  z-index: 50;
+
+  display: flex;
+  flex-direction: column;
+
+  pointer-events: none;
+}
+
+.brand-star {
+  width: 40px;
+  height: 40px;
+
+  clip-path: polygon(
+    50% 0%,
+    58% 42%,
+    100% 50%,
+    58% 58%,
+    50% 100%,
+    42% 58%,
+    0% 50%,
+    42% 42%
+  );
+
+  background: rgb(0, 228, 49);
+
+  transition:
+    background-color 0.15s ease,
+    transform 0.25s ease;
+
+  filter:
+    drop-shadow(0 0 10px rgba(0,228,49,.8))
+    drop-shadow(0 0 20px rgba(0,228,49,.6));
+
+  margin-bottom: 18px;
+}
+
+.brand-star.glow-burst {
+  animation:
+    starBurst 0.5s ease-in-out;
+}
+
+/* @keyframes starBurst {
+
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.3);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+} */
+
+.brand-title {
+  display: flex;
+  flex-direction: column;
+
+  color: white;
+  font-family: "Playfair Display", serif;
+
+  line-height: 0.92;
+
+  font-size: 115px;
+  font-weight: 300;
+
+  letter-spacing: -0.03em;
+}
+
+.status-message {
+  margin-top: 18px;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 28px;
+  font-weight: 600;
+
+  letter-spacing: 0.03em;
+
+  text-transform: uppercase;
+}
+
+.top-right-message {
+  position: fixed;
+
+  top: 32px;
+  right: 42px;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 20px;
+  font-weight: 600;
+
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+}
+.searching-prompt {
+  position: absolute;
+
+  left: 50%;
+  top: 72%;
+
+  transform: translateX(-50%);
+
+  z-index: 30;
+
+  color: rgba(255,255,255,.75);
+
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 42px;
+  font-weight: 500;
+
+  letter-spacing: 0.02em;
+
+  text-transform: uppercase;
+
+  pointer-events: none;
+
+  transition:
+    opacity .4s ease;
 }

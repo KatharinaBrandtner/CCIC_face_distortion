@@ -198,7 +198,7 @@ export function drawFacePoints(
       },
       neutral: {
         label: 'NEUTRAL',
-        color: { r: 210, g: 210, b: 210 },
+        color: { r: 104, g: 93, b: 255 },
       },
       sad: {
         label: 'SAD',
@@ -530,6 +530,95 @@ export function getHappinessScore(mood) {
     p.pop();
   }
 
+
 export function getMoodColor(mood) {
   return getMoodVisuals(mood).color;
+}
+
+
+export function updateStarColor(
+  appState,
+  lockedMood,
+  currentTintColor
+) {
+
+  const star =
+    document.querySelector(
+      '#brand-star'
+    );
+
+  if (!star) return;
+
+  let color = {
+    r: 0,
+    g: 228,
+    b: 49
+  };
+
+  if (
+    appState === 'analyzed' &&
+    lockedMood
+  ) {
+    color =
+      getMoodColor(
+        lockedMood
+      );
+  }
+
+  if (
+    appState === 'manipulating' &&
+    currentTintColor
+  ) {
+    color =
+      currentTintColor;
+  }
+
+  star.style.background =
+    `rgb(
+      ${Math.round(color.r)},
+      ${Math.round(color.g)},
+      ${Math.round(color.b)}
+    )`;
+
+  star.style.filter =
+    `
+    drop-shadow(
+      0 0 8px
+      rgba(
+        ${color.r},
+        ${color.g},
+        ${color.b},
+        .9
+      )
+    )
+    drop-shadow(
+      0 0 20px
+      rgba(
+        ${color.r},
+        ${color.g},
+        ${color.b},
+        .7
+      )
+    )
+  `;
+}
+
+export function triggerStarBurst() {
+
+  const star =
+    document.querySelector(
+      '#brand-star'
+    );
+
+  if (!star) return;
+
+  star.classList.remove(
+    'glow-burst'
+  );
+
+  void star.offsetWidth;
+
+  star.classList.add(
+    'glow-burst'
+  );
 }

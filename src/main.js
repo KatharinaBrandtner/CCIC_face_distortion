@@ -24,7 +24,8 @@ import {
   drawAnalysisOverlay,
   drawMoodTint,
   drawMoodResultPanel,
-  getMoodColor
+  getMoodColor,
+  updateStarColor, triggerStarBurst
 } from './drawing.js';
 import { drawStar, drawSparkle, lerpColorObject, drawManipulationSparkles, drawOptimizationUI, getManipulationTintColor } from './pages/manipulating.js';
 import { runManipulation } from './pages/manupulated.js';
@@ -37,19 +38,47 @@ document.querySelector('#app').innerHTML = `
 
     <div class="dark-overlay"></div>
 
-    <header class="headline">
-      <h1>HOW PERFECT ARE YOU?</h1>
-    </header>
+    <header class="brand-ui">
+
+  <div id="brand-star" class="brand-star"></div>
+
+  <div class="brand-title">
+    <span>PERFECT</span>
+    <span>YOU</span>
+  </div>
+
+  <div
+    id="status-message"
+    class="status-message"
+  ></div>
+
+  <div
+    id="top-right-message"
+    class="top-right-message"
+  ></div>
+
+</header>
+
+<div
+  id="searching-prompt"
+  class="searching-prompt"
+>
+  HOW PERFECT ARE YOU?
+</div>
 
     <div class="face-window"></div>
   </section>
 `;
+
+
 
 let appState = 'loading';
 // loading | searching | preAnalyzing | analyzing | analyzed| manipulating| manipulated 
 
 let lockedMood = null;
 let moodAnalyzed = false;
+
+let previousStarState = null;
 
 let lockedPerfectFaceScore = null;
 let perfectFaceAnalyzed = false;
@@ -73,6 +102,115 @@ const MANIPULATION_DURATION = 5000;
 
 
 let manipulatedStartTime = 0;
+
+
+
+function updateBrandingUI(
+  appState,
+  p,
+  analyzedStartTime,
+  manipulationStartTime,
+  manipulatedStartTime
+) {
+  const statusEl =
+    document.querySelector(
+      '#status-message'
+    );
+
+  const topRightEl =
+    document.querySelector(
+      '#top-right-message'
+    );
+
+  const searchingPrompt =
+  document.querySelector(
+    '#searching-prompt'
+  );
+
+  if (!statusEl) return;
+
+  statusEl.textContent = '';
+  topRightEl.textContent = '';
+
+  if (appState === 'searching') {
+    statusEl.textContent = '';
+  }
+  if (searchingPrompt) {
+    searchingPrompt.style.opacity =
+    appState === 'searching'
+      ? '1'
+      : '0';
+}
+
+  if (appState === 'preAnalyzing') {
+    statusEl.textContent =
+      'ANALYZING. PLEASE HOLD STILL.';
+  }
+
+  if (appState === 'analyzing') {
+    statusEl.textContent =
+      'ANALYZING. PLEASE HOLD STILL.';
+  }
+
+  if (appState === 'analyzed') {
+
+    const elapsed =
+      p.millis() - analyzedStartTime;
+
+    const seconds =
+      Math.max(
+        0,
+        Math.ceil(
+          (RESULT_DISPLAY_DURATION - elapsed)
+          / 1000
+        )
+      );
+
+    statusEl.textContent =
+      `YOU COULD BE HAPPIER... ${seconds}s`;
+  }
+
+  if (appState === 'manipulating') {
+
+    const elapsed =
+      p.millis() - manipulationStartTime;
+
+    const progress =
+      Math.floor(
+        p.constrain(
+          elapsed /
+          MANIPULATION_DURATION,
+          0,
+          1
+        ) * 100
+      );
+
+    statusEl.textContent =
+      `${progress}% OPTIMIZATION`;
+  }
+
+  if (appState === 'manipulated') {
+
+    statusEl.textContent =
+      'OPTIMIZATION COMPLETE.';
+
+    const elapsed =
+      p.millis() -
+      manipulatedStartTime;
+
+    const seconds =
+      Math.max(
+        0,
+        30 -
+        Math.floor(
+          elapsed / 1000
+        )
+      );
+
+    topRightEl.textContent =
+      `NEW ANALYZING IN ${seconds}s`;
+  }
+}
 
 
 function updateFaceWindowVisibility(appState) {
@@ -173,6 +311,23 @@ function getFacePointAlpha(p) {
     p.clear();
     p.background(0);
 
+    updateBrandingUI(
+  appState,
+  p,
+  analyzedStartTime,
+  manipulationStartTime,
+  manipulatedStartTime
+);
+
+if (
+  previousStarState !== appState
+) {
+  triggerStarBurst();
+
+  previousStarState =
+    appState;
+}
+
     updateFaceWindowVisibility(appState);
 
     const video = getVideo();
@@ -224,20 +379,53 @@ function getFacePointAlpha(p) {
     }
 
     // Schritt 1: Gesicht erkannt → kurze Wartezeit
+
+
+    // if (appState === 'searching') {
+    //   if (!faceDetectedTime) {
+    //     faceDetectedTime = p.millis();
+    //   }
+
+    //   const elapsedSinceDetection = p.millis() - faceDetectedTime;
+
+    //   if (elapsedSinceDetection >= FACE_DETECTION_DELAY) {
+    //     appState = 'preAnalyzing';
+    //     analysisStartTime = p.millis();
+    //   }
+
+    //   return;
+    // }
+
     if (appState === 'searching') {
-      if (!faceDetectedTime) {
-        faceDetectedTime = p.millis();
-      }
 
-      const elapsedSinceDetection = p.millis() - faceDetectedTime;
+  
 
-      if (elapsedSinceDetection >= FACE_DETECTION_DELAY) {
-        appState = 'preAnalyzing';
-        analysisStartTime = p.millis();
-      }
+  if (!faceDetected) {
+    faceDetectedTime = null;
+    return;
+  }
 
-      return;
-    }
+  if (!faceDetectedTime) {
+    faceDetectedTime = p.millis();
+  }
+
+  const elapsedSinceDetection =
+    p.millis() - faceDetectedTime;
+
+  if (
+    elapsedSinceDetection >=
+    FACE_DETECTION_DELAY
+  ) {
+    appState = 'preAnalyzing';
+    analysisStartTime = p.millis();
+  }
+
+  updateStarColor(
+  appState
+);
+
+  return;
+}
 
     // Schritt 2: Fake Analyse / Ladebalken
     if (appState === 'preAnalyzing') {
@@ -260,6 +448,10 @@ drawMoodTint(p, { label: 'preanalyzing' }, appState);
 
           console.log('Mood locked:', lockedMood);
         });
+
+        updateStarColor(
+  appState
+);
       
       }
 
@@ -270,6 +462,11 @@ drawMoodTint(p, { label: 'preanalyzing' }, appState);
     if (appState === 'analyzing') {
       drawAnalysisOverlay(p, 1);
       drawStatus(p, 'Emotional profile wird berechnet...');
+
+      updateStarColor(
+  appState
+);
+
       return;
     }
 
@@ -292,6 +489,11 @@ drawMoodTint(p, { label: 'preanalyzing' }, appState);
         videoSize,
         lockedPerfectFaceScore
       );
+
+      updateStarColor(
+  appState,
+  lockedMood
+);
 
       const elapsed = p.millis() - analyzedStartTime;
 
@@ -338,14 +540,15 @@ drawMoodResultPanel(
   lockedPerfectFaceScore,
   currentTintColor
 );
-drawManipulationSparkles(p);
+drawManipulationSparkles(p, currentTintColor);
 
-drawOptimizationUI(
-    p,
-    Math.floor(
-      optimizationProgress * 100
-    )
-  );
+updateStarColor(
+  appState,
+  lockedMood,
+  currentTintColor
+);
+
+
 
       if (elapsed >= MANIPULATION_DURATION) {
   appState = 'manipulated';
@@ -377,6 +580,11 @@ drawOptimizationUI(
         videoSize,
         lockedPerfectFaceScore
       );
+
+      updateStarColor(
+  appState
+);
+
       console.log('APP STATE MANIPULATED RUNS');
       return;
       
