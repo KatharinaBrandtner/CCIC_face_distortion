@@ -182,15 +182,19 @@ function clamp(value, min, max) {
     const smileCompliance = calculateSmileCompliance(face, happinessScore);
     const attentionAlignment = calculateAttentionAlignment(face, videoSize);
   
-    const total =
-      symmetry * 0.4 +
-      smileCompliance * 0.35 +
-      attentionAlignment * 0.25;
-  
-    return {
-      total: Math.round(clamp(total, 0, 100)),
-      symmetry,
-      smileCompliance,
-      attentionAlignment,
-    };
+    const rawTotal =
+  symmetry * 0.4 +
+  smileCompliance * 0.35 +
+  attentionAlignment * 0.25;
+
+// hohe Werte überproportional bestrafen
+const manipulatedTotal =
+  Math.pow(rawTotal / 100, 1.8) * 45;
+
+return {
+  total: Math.round(clamp(manipulatedTotal, 0, 45)),
+  symmetry,
+  smileCompliance,
+  attentionAlignment,
+};
   }

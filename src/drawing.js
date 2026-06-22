@@ -131,68 +131,68 @@ export function getFaceWindowCutout(p) {
     };
 }
 
-export function drawAnalysisOverlay(p, progress, mood, appState) {
-    const [r, g, b] = getInterfaceColor(mood, appState);
+// export function drawAnalysisOverlay(p, progress, mood, appState) {
+//     const [r, g, b] = getInterfaceColor(mood, appState);
 
-    const panel = getPanelUnderFace(p, 300);
+//     const panel = getPanelUnderFace(p, 300);
 
-    const padding = 32;
-    const leftX = panel.x + padding;
-    const topY = panel.y + 34;
-    const rightX = panel.x + panel.w - padding;
+//     const padding = 32;
+//     const leftX = panel.x + padding;
+//     const topY = panel.y + 34;
+//     const rightX = panel.x + panel.w - padding;
 
-    p.push();
+//     p.push();
 
 
-    // Panel Background
-    p.noStroke();
-    p.fill(0, 0, 0, 135);
-    p.rect(panel.x, panel.y, panel.w, panel.h, 16);
+//     // Panel Background
+//     p.noStroke();
+//     p.fill(0, 0, 0, 135);
+//     p.rect(panel.x, panel.y, panel.w, panel.h, 16);
 
-    // Panel Border
-    p.stroke(r, g, b, 90);
-    p.strokeWeight(1);
-    p.noFill();
-    p.rect(panel.x, panel.y, panel.w, panel.h, 16);
+//     // Panel Border
+//     p.stroke(r, g, b, 90);
+//     p.strokeWeight(1);
+//     p.noFill();
+//     p.rect(panel.x, panel.y, panel.w, panel.h, 16);
 
-    // Text
-    p.noStroke();
-    p.textAlign(p.LEFT, p.TOP);
-    p.textSize(22);
-    p.fill(r, g, b);
+//     // Text
+//     p.noStroke();
+//     p.textAlign(p.LEFT, p.TOP);
+//     p.textSize(22);
+//     p.fill(r, g, b);
 
-    p.text('ANALYZING FACE...', leftX, topY);
-    p.text('DETECTING EMOTIONAL PROFILE...', leftX, topY + 62);
-    p.text('CALCULATING POTENTIAL...', leftX, topY + 124);
+//     p.text('ANALYZING FACE...', leftX, topY);
+//     p.text('DETECTING EMOTIONAL PROFILE...', leftX, topY + 62);
+//     p.text('CALCULATING POTENTIAL...', leftX, topY + 124);
 
-    // Progress Bar
-    const progressBarX = leftX;
-    const progressBarY = topY + 188;
-    const progressBarWidth = rightX - leftX;
-    const progressBarHeight = 18;
+//     // Progress Bar
+//     const progressBarX = leftX;
+//     const progressBarY = topY + 188;
+//     const progressBarWidth = rightX - leftX;
+//     const progressBarHeight = 18;
 
-    const safeProgress = p.constrain(progress, 0, 1);
+//     const safeProgress = p.constrain(progress, 0, 1);
 
-    p.noStroke();
-    p.fill(255, 255, 255, 35);
-    p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
+//     p.noStroke();
+//     p.fill(255, 255, 255, 35);
+//     p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
 
-    p.fill(r, g, b);
-    p.rect(
-        progressBarX,
-        progressBarY,
-        progressBarWidth * safeProgress,
-        progressBarHeight,
-        4
-    );
+//     p.fill(r, g, b);
+//     p.rect(
+//         progressBarX,
+//         progressBarY,
+//         progressBarWidth * safeProgress,
+//         progressBarHeight,
+//         4
+//     );
 
-    p.stroke(r, g, b, 180);
-    p.strokeWeight(1);
-    p.noFill();
-    p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
+//     p.stroke(r, g, b, 180);
+//     p.strokeWeight(1);
+//     p.noFill();
+//     p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
 
-    p.pop();
-}
+//     p.pop();
+// }
 export function getMoodVisuals(mood) {
     const label = (mood?.label || 'neutral').toLowerCase();
 
@@ -273,9 +273,9 @@ export function getMoodVisuals(mood) {
         gradientneutral: {
             label: 'NEUTRAL',
             color: {
-                r: 110,
-                g: 220,
-                b: 133
+               r: 38,
+               g: 178,
+               b: 125
             },
         },
 
@@ -461,6 +461,299 @@ export function drawMoodTint(
     );
 
     ctx.restore();
+}
+
+export function drawSearchingOverlay(p, detectionProgress = 0) {
+
+    const ctx = p.drawingContext;
+
+    const cx = p.width / 2;
+    const cy = p.height * 0.50;
+
+    const maxRadius = Math.sqrt(
+    cx * cx + cy * cy
+);
+
+const innerRadius =
+    p.lerp(
+        p.width * 0.017,
+        0,
+        detectionProgress
+    );
+
+const outerRadius =
+    p.lerp(
+        p.width * 0.50,
+        maxRadius,
+        detectionProgress
+    );
+
+    const gradient =
+    ctx.createRadialGradient(
+        cx,
+        cy,
+        innerRadius,
+        cx,
+        cy,
+        outerRadius
+    );
+
+    const stop0 =
+    p.lerp(
+        0.55,
+        0.0,
+        detectionProgress
+    );
+    const stop25 =
+    p.lerp(
+        0.65,
+        0.20,
+        detectionProgress
+    );
+    const stop50 =
+    p.lerp(
+        0.82,
+        0.10,
+        detectionProgress
+    );
+    const stop75 =
+    p.lerp(
+        0.92,
+        0.35,
+        detectionProgress
+    );
+    const stop100 =
+    p.lerp(
+        0.98,
+        0.80,
+        detectionProgress
+    );
+
+    
+    gradient.addColorStop(
+    0,
+    `rgba(0,0,0,${stop0})`
+);
+
+gradient.addColorStop(
+    0.25,
+    `rgba(0,0,0,${stop25})`
+);
+
+gradient.addColorStop(
+    0.50,
+    `rgba(0,0,0,${stop50})`
+);
+
+gradient.addColorStop(
+    0.75,
+    `rgba(0,0,0,${stop75})`
+);
+
+gradient.addColorStop(
+    1,
+    `rgba(0,0,0,${stop100})`
+);
+    ctx.save();
+
+    ctx.fillStyle = gradient;
+
+    ctx.fillRect(
+        0,
+        0,
+        p.width,
+        p.height
+    );
+
+    ctx.restore();
+}
+
+export function drawFakeFaceMesh(p) {
+
+    const cx = p.width / 2;
+    const cy = p.height * 0.45;
+
+    const scale =
+    Math.min(
+        p.width,
+        p.height
+    ) * 0.34;
+
+    const pulse =
+        1 +
+        Math.sin(
+            p.millis() * 0.001
+        ) * 0.015;
+
+    p.push();
+
+    p.translate(
+        cx,
+        cy
+    );
+
+    p.scale(pulse);
+
+    p.stroke(
+        255,
+        255,
+        255,
+        30
+    );
+
+    p.strokeWeight(1);
+
+    p.noFill();
+
+    p.ellipse(
+        0,
+        0,
+        scale * 0.8,
+        scale
+    );
+
+    p.ellipse(
+        -scale * 0.15,
+        -scale * 0.10,
+        scale * 0.15,
+        scale * 0.10
+    );
+
+    p.ellipse(
+        scale * 0.15,
+        -scale * 0.10,
+        scale * 0.15,
+        scale * 0.10
+    );
+
+    p.line(
+        0,
+        -scale * 0.05,
+        0,
+        scale * 0.15
+    );
+
+    p.line(
+        -scale * 0.12,
+        scale * 0.25,
+        scale * 0.12,
+        scale * 0.25
+    );
+
+    for (
+        let i = 0;
+        i < 120;
+        i++
+    ) {
+
+        const angle =
+            p.TWO_PI * i / 120;
+
+        const rx =
+            Math.cos(angle) *
+            scale *
+            0.4;
+
+        const ry =
+            Math.sin(angle) *
+            scale *
+            0.5;
+
+        p.noStroke();
+
+        p.fill(
+            255,
+            255,
+            255,
+            35
+        );
+
+        p.circle(
+            rx,
+            ry,
+            2
+        );
+    }
+
+    p.pop();
+}
+
+export function drawScannerCorners(p) {
+
+   const size = 420;
+
+    const cx = p.width / 2;
+    const cy = p.height * 0.45;
+
+    const x =
+        cx - size / 2;
+
+    const y =
+        cy - size / 2;
+
+    const l = 28;
+
+    p.push();
+
+    p.strokeWeight(4);
+
+    p.stroke(
+    255,
+    255,
+    255,
+    220
+);
+
+    p.line(x, y, x + l, y);
+    p.line(x, y, x, y + l);
+
+    
+
+    p.line(
+        x,
+        y + size,
+        x + l,
+        y + size
+    );
+
+    p.line(
+        x,
+        y + size,
+        x,
+        y + size - l
+    );
+
+    
+
+    p.line(
+        x + size,
+        y,
+        x + size - l,
+        y
+    );
+
+    p.line(
+        x + size,
+        y,
+        x + size,
+        y + l
+    );
+
+    p.line(
+        x + size,
+        y + size,
+        x + size - l,
+        y + size
+    );
+
+    p.line(
+        x + size,
+        y + size,
+        x + size,
+        y + size - l
+    );
+
+    p.pop();
 }
 
 export function getHappinessScore(mood) {

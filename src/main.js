@@ -21,13 +21,16 @@ import {
     drawCamera,
     drawFacePoints,
     drawStatus,
-    drawAnalysisOverlay,
+    // drawAnalysisOverlay,
     drawMoodTint,
     drawMoodResultPanel,
     getMoodColor,
     updateStarColor,
-    triggerStarBurst
+    triggerStarBurst,
+    drawSearchingOverlay,
+drawScannerCorners,
 } from './drawing.js';
+import { drawDefaultMesh } from './default_facemesh_fake.js';
 import {
     drawStar,
     drawSparkle,
@@ -75,7 +78,20 @@ document.querySelector('#app').innerHTML = `
   id="searching-prompt"
   class="searching-prompt"
 >
-  HOW PERFECT ARE YOU?
+  HOW PERFECT <br> ARE YOU?
+</div>
+<img
+  id="searching-star"
+  class="searching-star"
+  src="/searching_star.png"
+  alt=""
+>
+
+<div
+  id="ui-panel"
+  class="ui-panel"
+>
+  <div id="panel-content"></div>
 </div>
 
     <div class="face-window"></div>
@@ -83,6 +99,7 @@ document.querySelector('#app').innerHTML = `
 `;
 
 
+let defaultMeshImg;
 
 let appState = 'loading';
 // loading | searching | preAnalyzing | analyzing | analyzed| manipulating| manipulated 
@@ -96,7 +113,7 @@ let lockedPerfectFaceScore = null;
 let perfectFaceAnalyzed = false;
 
 let faceDetectedTime = null;
-const FACE_DETECTION_DELAY = 1500;
+const FACE_DETECTION_DELAY = 15000;
 // const FACE_DETECTION_DELAY = 1500;
 
 let analysisStartTime = 0;
@@ -139,6 +156,11 @@ function updateBrandingUI(
             '#searching-prompt'
         );
 
+    const searchingStar =
+    document.getElementById(
+        'searching-star'
+    );
+
     if (!statusEl) return;
 
     statusEl.textContent = '';
@@ -152,7 +174,17 @@ function updateBrandingUI(
             appState === 'searching' ?
             '1' :
             '0';
+
+            
     }
+
+    if (searchingStar) {
+
+    searchingStar.style.opacity =
+        appState === 'searching'
+            ? '.95'
+            : '0';
+}
 
     if (appState === 'preAnalyzing') {
         statusEl.textContent =
@@ -226,15 +258,15 @@ function updateBrandingUI(
 
 
 function updateFaceWindowVisibility(appState) {
-    const faceWindow = document.querySelector('.face-window');
+    // const faceWindow = document.querySelector('.face-window');
 
-    const shouldShowFaceWindow =
-        appState === 'loading' ||
-        appState === 'searching';
+    // const shouldShowFaceWindow =
+    //     appState === 'loading' ||
+    //     appState === 'searching';
 
-    if (faceWindow) {
-        faceWindow.classList.toggle('is-hidden', !shouldShowFaceWindow);
-    }
+    // if (faceWindow) {
+    //     faceWindow.classList.toggle('is-hidden', !shouldShowFaceWindow);
+    // }
 }
 
 function drawMirroredCameraLayer(p, drawFunction) {
@@ -247,8 +279,125 @@ function drawMirroredCameraLayer(p, drawFunction) {
     p.pop();
 }
 
+
+
+function updatePanelUI({
+    appState,
+    progress = 0,
+    perfectFaceScore = 0,
+    happinessScore = 0,
+    moodLabel = '',
+    color = { r: 255, g: 255, b: 255 }
+}) {
+
+  
+    const panel =
+        document.querySelector('#ui-panel');
+
+    const content =
+        document.querySelector('#panel-content');
+
+        
+
+    if (!panel || !content) return;
+
+    panel.style.setProperty(
+        '--accent',
+        `rgb(${color.r}, ${color.g}, ${color.b})`
+    );
+
+    if (appState === 'searching') {
+        panel.classList.remove('visible');
+        return;
+    }
+
+    panel.classList.add('visible');
+
+    if (
+        appState === 'preAnalyzing' ||
+        appState === 'analyzing'
+    ) {
+
+        content.innerHTML = `
+      <div class="panel-row">
+        ANALYZING FACE...
+      </div>
+
+      <div class="panel-row">
+        DETECTING EMOTIONAL PROFILE...
+      </div>
+
+      <div class="panel-row">
+        CALCULATING POTENTIAL...
+      </div>
+
+      <div class="progress-track">
+        <div
+          class="progress-fill"
+          style="
+            width:${progress * 100}%;
+          "
+        ></div>
+      </div>
+    `;
+
+        return;
+    }
+
+    content.innerHTML = `
+    <div class="panel-label">
+      PERFECT FACE SCORE
+    </div>
+
+    <div class="panel-value">
+      ${perfectFaceScore}%
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <div class="panel-label">
+      DETECTED MOOD
+    </div>
+
+    <div class="panel-value">
+      ${moodLabel}
+    </div>
+
+    <div class="panel-label">
+      HAPPINESS SCORE
+    </div>
+
+    <div class="panel-value">
+      ${happinessScore}%
+    </div>
+
+    <div class="progress-track">
+      <div
+        class="progress-fill"
+        style="
+          width:${happinessScore}%;
+        "
+      ></div>
+    </div>
+  `;
+}
+
+
 const sketch = (p) => {
+
+//   p.preload = () => {
+//      console.log('PRELOAD RUNNING');
+
+   
+
+// };
     p.setup = async () => {
+
+        defaultMeshImg =
+        await p.loadImage(
+            '/default_mesh.png'
+        );
+
         const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
         canvas.parent('p5-container');
 
@@ -262,7 +411,7 @@ const sketch = (p) => {
         appState = 'searching';
     };
 
-
+   
 
 
 
@@ -315,8 +464,32 @@ const sketch = (p) => {
             return p.lerp(255, 0, t);
         }
 
+        if (
+    appState === 'searching' &&
+    faceDetectedTime
+) {
+
+    const elapsed =
+        p.millis() -
+        faceDetectedTime;
+
+    const transitionProgress =
+        p.constrain(
+            elapsed / 1000,
+            0,
+            1
+        );
+
+    return p.lerp(
+        0,
+        255,
+        transitionProgress
+    );
+}
+
         return 255;
     }
+
 
 
     p.draw = () => {
@@ -371,8 +544,9 @@ const sketch = (p) => {
             if (
                 face &&
                 facePointAlpha > 0 &&
-                appState !== 'loading' &&
-                appState !== 'searching'
+                appState !== 'loading' 
+                // &&
+                // appState !== 'searching'
             ) {
                 drawFacePoints(
                     p,
@@ -384,29 +558,31 @@ const sketch = (p) => {
         });
 
         // Wenn kein Gesicht da ist
+        console.log(
+    'draw mesh:',
+    defaultMeshImg
+);
         if (!faceDetected && appState === 'searching') {
-            faceDetectedTime = null;
-            drawStatus(p, 'Kein Gesicht erkannt');
-            return;
-        }
+    faceDetectedTime = null;
+
+    drawSearchingOverlay(p, 0);
+
+    if (defaultMeshImg) {
+
+    drawDefaultMesh(
+    p,
+    defaultMeshImg,
+    1
+);
+
+}
+    drawScannerCorners(p);
+
+    drawStatus(p, 'Kein Gesicht erkannt');
+    return;
+}
 
         // Schritt 1: Gesicht erkannt → kurze Wartezeit
-
-
-        // if (appState === 'searching') {
-        //   if (!faceDetectedTime) {
-        //     faceDetectedTime = p.millis();
-        //   }
-
-        //   const elapsedSinceDetection = p.millis() - faceDetectedTime;
-
-        //   if (elapsedSinceDetection >= FACE_DETECTION_DELAY) {
-        //     appState = 'preAnalyzing';
-        //     analysisStartTime = p.millis();
-        //   }
-
-        //   return;
-        // }
 
         if (appState === 'searching') {
 
@@ -424,6 +600,21 @@ const sketch = (p) => {
             const elapsedSinceDetection =
                 p.millis() - faceDetectedTime;
 
+                const detectionProgress =
+    p.constrain(
+        elapsedSinceDetection /
+        FACE_DETECTION_DELAY,
+        0,
+        1
+    );
+
+    const transitionProgress =
+    p.constrain(
+        detectionProgress / 0.35,
+        0,
+        1
+    );
+
             if (
                 elapsedSinceDetection >=
                 FACE_DETECTION_DELAY
@@ -436,6 +627,18 @@ const sketch = (p) => {
                 appState
             );
 
+            drawSearchingOverlay(p, detectionProgress);
+if (defaultMeshImg) {
+
+    drawDefaultMesh(
+    p,
+    defaultMeshImg,
+    1 - transitionProgress
+);
+
+}
+drawScannerCorners(p);
+
             return;
         }
 
@@ -443,10 +646,21 @@ const sketch = (p) => {
         if (appState === 'preAnalyzing') {
             const elapsed = p.millis() - analysisStartTime;
             const progress = p.constrain(elapsed / ANALYSIS_DURATION, 0, 1);
-            drawMoodTint(p, {
-                label: 'preanalyzing'
-            }, appState);
-            drawAnalysisOverlay(p, progress);
+            drawMoodTint(
+  p,
+  { label: 'preanalyzing' },
+  appState
+);
+
+updatePanelUI({
+  appState,
+  progress,
+  color: {
+    r: 230,
+    g: 230,
+    b: 230
+  }
+});
 
 
 
@@ -474,12 +688,24 @@ const sketch = (p) => {
 
         // Schritt 3: echte Mood-Analyse läuft
         if (appState === 'analyzing') {
-            drawAnalysisOverlay(p, 1);
+            
             drawStatus(p, 'Emotional profile wird berechnet...');
 
-            updateStarColor(
-                appState
-            );
+            updatePanelUI({
+        appState,
+        progress: 1,
+        color: {
+            r: 230,
+            g: 230,
+            b: 230
+        }
+    });
+
+    updateStarColor(
+        appState
+    );
+
+           
 
             return;
         }
@@ -495,14 +721,20 @@ const sketch = (p) => {
 
             drawMoodTint(p, lockedMood, appState);
 
-            drawMoodResultPanel(
-                p,
-                lockedMood,
-                appState,
-                face,
-                videoSize,
-                lockedPerfectFaceScore
-            );
+            const moodColor =
+    getMoodColor(lockedMood);
+
+updatePanelUI({
+    appState,
+    perfectFaceScore:
+        lockedPerfectFaceScore.total,
+    happinessScore:
+        lockedMood.happyScore || 0,
+    moodLabel:
+        lockedMood.label.toUpperCase(),
+    color:
+        moodColor
+});
 
             updateStarColor(
                 appState,
@@ -545,15 +777,44 @@ const sketch = (p) => {
                 currentTintColor
             );
 
-            drawMoodResultPanel(
-                p,
-                lockedMood,
-                appState,
-                face,
-                videoSize,
-                lockedPerfectFaceScore,
-                currentTintColor
-            );
+            
+const displayedPerfectFace =
+    Math.round(
+        p.lerp(
+            lockedPerfectFaceScore.total,
+            100,
+            optimizationProgress
+        )
+    );
+
+const displayedHappy =
+    Math.round(
+        p.lerp(
+            lockedMood.happyScore || 0,
+            100,
+            optimizationProgress
+        )
+    );
+
+updatePanelUI({
+    appState,
+
+    perfectFaceScore:
+        displayedPerfectFace,
+
+    happinessScore:
+        displayedHappy,
+
+    moodLabel:
+        optimizationProgress < 0.5
+            ? lockedMood.label.toUpperCase()
+            : 'HAPPY',
+
+    color:
+        currentTintColor
+});    
+
+
             drawManipulationSparkles(p, currentTintColor);
 
             updateStarColor(
@@ -588,16 +849,17 @@ const sketch = (p) => {
             }, appState);
 
 
-            drawMoodResultPanel(
-                p, {
-                    label: 'manipulated'
-                },
-                appState,
-                face,
-                videoSize,
-                lockedPerfectFaceScore
-            );
-
+            updatePanelUI({
+    appState,
+    perfectFaceScore: 100,
+    happinessScore: 100,
+    moodLabel: 'HAPPY',
+    color: {
+        r: 0,
+        g: 228,
+        b: 49
+    }
+});
             updateStarColor(
                 appState
             );
