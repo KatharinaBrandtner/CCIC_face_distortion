@@ -211,7 +211,7 @@ export function runManipulation( p, face, videoSize) {
             dstMat.delete();
         }
         drawBlush(p, mirroredPoints);
-        enhanceLipColor( p, lipColorPoints , 60);
+        enhanceLipColor( p, lipColorPoints , 50);
         drawStatus(p, "Stage 4");
          p.pop();
   }

@@ -55,52 +55,72 @@ export function drawBlush(p, points) {
     p.pop();
 }
 
-export function enhanceLipColor(p, points, strength = 1.35) {
+function lerpPoint(a, b, t) {
+    return {
+        x: a.x + (b.x - a.x) * t,
+        y: a.y + (b.y - a.y) * t,
+    };
+}
+
+function scaleFromCenter(pt, center, scaleX, scaleY) {
+    return {
+        x: center.x + (pt.x - center.x) * scaleX,
+        y: center.y + (pt.y - center.y) * scaleY,
+    };
+}
+
+export function enhanceLipColor(p, points, alpha = 30) {
         if (!points) return;
     
+        // Oberlippe:
         const upperLipIds = [
-            61, 185, 40, 39, 37, 0,
+            78, 185, 40, 39, 37, 0,
             267, 269, 270, 409, 291,
-            308, 324, 318, 402, 317,
-            14, 87, 178, 88, 95, 78,
+    
+            308, 415, 310, 311, 312, 13,
+            82, 81, 80, 191, 78,
         ];
     
+        // Unterlippe:
         const lowerLipIds = [
-            61, 146, 91, 181, 84, 17,
-            314, 405, 321, 375, 291,
-            308, 324, 318, 402, 317,
-            14, 87, 178, 88, 95, 78,
+            78, 95, 88, 178, 87, 14,
+            317, 402, 318, 324, 308,
+    
+            308, 375, 321, 405, 314, 17,
+            84, 181, 91, 146, 61,
         ];
     
-        const upperLip = upperLipIds
-            .map((id) => points[id])
-            .filter(Boolean);
+        function getPoints(ids) {
+            return ids
+                .map((id) => points[id])
+                .filter(Boolean);
+        }
     
-        const lowerLip = lowerLipIds
-            .map((id) => points[id])
-            .filter(Boolean);
+        const upperLip = getPoints(upperLipIds);
+        const lowerLip = getPoints(lowerLipIds);
     
         if (upperLip.length < 3 || lowerLip.length < 3) return;
     
         p.push();
         p.noStroke();
+        p.drawingContext.filter = "none";
     
-        // Macht das Rot weicher, aber nicht so verschwommen wie Blush
-        p.drawingContext.filter = "blur(2px)";
-        p.fill(205, 20, 45, strength);
+        // leicht dunkles Rot, damit die vorhandene Struktur noch sichtbar bleibt
+        p.fill(185, 30, 50, alpha);
     
+        // Oberlippe als eine saubere Fläche
         p.beginShape();
         for (const pt of upperLip) {
             p.vertex(pt.x, pt.y);
         }
         p.endShape(p.CLOSE);
     
+        // Unterlippe als eine saubere Fläche
         p.beginShape();
         for (const pt of lowerLip) {
             p.vertex(pt.x, pt.y);
         }
         p.endShape(p.CLOSE);
     
-        p.drawingContext.filter = "none";
         p.pop();
     }
