@@ -119,20 +119,20 @@ let lockedPerfectFaceScore = null;
 let perfectFaceAnalyzed = false;
 
 let faceDetectedTime = null;
-const FACE_DETECTION_DELAY = 2000;
+const FACE_DETECTION_DELAY = 2500;
 // const FACE_DETECTION_DELAY = 1500;
 
 let analysisStartTime = 0;
-const ANALYSIS_DURATION = 4000;
+const ANALYSIS_DURATION = 3500;
 // const ANALYSIS_DURATION = 3500;
 
 // bevor manipulating einsetzt
 let analyzedStartTime = 0;
-const RESULT_DISPLAY_DURATION = 3000;
+const RESULT_DISPLAY_DURATION = 6000;
 // const RESULT_DISPLAY_DURATION = 1500;
 
 let manipulationStartTime = 0;
-const MANIPULATION_DURATION = 3500;
+const MANIPULATION_DURATION = 4000;
 // const MANIPULATION_DURATION = 3000;
 
 

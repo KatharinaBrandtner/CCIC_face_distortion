@@ -158,7 +158,7 @@ function drawEyeDebug(p, face, videoSize) {
 
 p.noFill();
 p.stroke(0, 255, 255);
-p.strokeWeight(2);
+p.strokeWeight(5);
 
 const leftWidth =
   (leftBounds.width / videoSize.width) *

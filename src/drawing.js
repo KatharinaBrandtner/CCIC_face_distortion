@@ -86,7 +86,7 @@ export function drawFacePoints(
             (point.y / videoSize.height) *
             rect.h;
 
-        p.circle(x, y, 2);
+        p.circle(x, y, 3);
     }
 }
 
