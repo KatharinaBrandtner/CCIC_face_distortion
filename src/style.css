@@ -22,7 +22,7 @@ body {
   margin: 0;
   background: black;
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: "Urbanist", sans-serif;
   overflow: hidden;
 }
 
@@ -67,8 +67,8 @@ body {
 }
 
 .brand-star {
-  width: 40px;
-  height: 40px;
+  width: 7vw;
+  height: 7vw;
 
   clip-path: polygon(
     50% 0%,
@@ -91,52 +91,93 @@ body {
   margin-bottom: 18px;
 }
 
-.brand-star.glow-burst {
-  animation: starBurst 0.5s ease-in-out;
-}
-
 .brand-title {
   display: flex;
   flex-direction: column;
 
   color: white;
   font-family: "Playfair Display", serif;
+  font-size: 13vw;
 
-  line-height: 0.92;
+  line-height: .98;
 
-  font-size: 115px;
-  font-weight: 300;
+  /* font-weight: 100; */
 
-  letter-spacing: -0.03em;
+  letter-spacing: -.04em;
 }
 
 .status-message {
-  margin-top: 18px;
+   margin-top: 1.2vh;
 
   color: white;
   font-family: "Urbanist", sans-serif;
 
-  font-size: 28px;
+  font-size: 4.2vw;
+
   font-weight: 600;
 
   letter-spacing: 0.03em;
 
   text-transform: uppercase;
 }
+.manipulated-message {
+
+  position: absolute;
+
+  z-index: 10000;
+
+  opacity: 0;
+
+  transition: opacity .4s ease;
+
+  color: white;
+
+  font-family: "Urbanist", sans-serif;
+
+  text-transform: uppercase;
+
+  line-height: 1.05;
+
+  pointer-events: none;
+
+  text-shadow:
+    0 0 24px rgba(255,255,255,.08);
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  bottom: 31vh;
+
+  white-space: nowrap;
+
+  font-size: 4.2vw;
+
+  font-weight: 600;
+
+  letter-spacing: .02em;
+
+  text-align: center;  
+}
+
+.manipulated-message.visible {
+  opacity: 1;
+}
 
 .top-right-message {
   position: fixed;
 
-  top: 32px;
-  right: 42px;
+  top: 48px;
+  right: 48px;
 
   color: white;
   font-family: "Urbanist", sans-serif;
 
-  font-size: 20px;
   font-weight: 600;
 
   letter-spacing: 0.05em;
+
+  font-size: 3vw;
 
   text-transform: uppercase;
 }
@@ -155,11 +196,11 @@ body {
 
   font-family: "Urbanist", sans-serif;
 
-  font-size: 48px;
+ font-size: 6vw;
 
-  font-weight: 400;
+  font-weight: 600;
 
-  letter-spacing: .08em;
+  letter-spacing: 0.03em;
 
   text-transform: uppercase;
 
@@ -167,6 +208,8 @@ body {
     0 0 20px rgba(255,255,255,.08);
 
   transition: opacity .4s ease;
+
+  text-align: center;
 }
 
 .searching-star {
@@ -179,7 +222,7 @@ body {
 
   transform: translateX(-50%);
 
-  width: 120px;
+  width: 160px;
 
   height: auto;
 
@@ -218,8 +261,8 @@ body {
   background:
     linear-gradient(
       180deg,
-      rgba(20,20,20,.25),
-      rgba(10,10,10,.45)
+      rgba(20,20,20,.35),
+      rgba(10,10,10,.55)
     );
 
   backdrop-filter: blur(24px);
@@ -312,7 +355,7 @@ body {
 
 .panel-label {
 
-  font-size: 20px;
+  font-size: 2.3vw;
 
   letter-spacing: .14em;
 
@@ -323,7 +366,7 @@ body {
 
   color: rgba(255,255,255,.55);
 
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 /* =========================
@@ -332,13 +375,13 @@ body {
 
 .panel-value {
 
-  font-size: 60px;
+  font-size: 7vw;
 
   font-weight: 700;
 
   line-height: .9;
 
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 /* =========================
    DIVIDER
@@ -356,7 +399,7 @@ body {
       transparent
     );
 
-   margin: 0px 0 34px;
+   margin: -10px 0 25px;
 }
 
 /* =========================

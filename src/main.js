@@ -20,7 +20,7 @@ import {
 import {
     drawCamera,
     drawFacePoints,
-    drawStatus,
+    // drawStatus,
     drawMoodTint,
     drawMoodResultPanel,
     getMoodColor,
@@ -93,6 +93,13 @@ document.querySelector('#app').innerHTML = `
   <div id="panel-content"></div>
 </div>
 
+<div
+  id="manipulated-message"
+  class="manipulated-message"
+>
+  THAT'S THE BEST VERSION OF YOURSELF
+</div>
+
     <div class="face-window"></div>
   </section>
 `;
@@ -149,6 +156,11 @@ function updateBrandingUI(
         document.querySelector(
             '#top-right-message'
         );
+
+    const manipulatedMessage =
+    document.querySelector(
+        '#manipulated-message'
+    );    
 
     const searchingPrompt =
         document.querySelector(
@@ -253,6 +265,13 @@ function updateBrandingUI(
         topRightEl.textContent =
             `NEW ANALYZING IN ${seconds}s`;
     }
+    if (manipulatedMessage) {
+
+    manipulatedMessage.classList.toggle(
+        'visible',
+        appState === 'manipulated'
+    );
+}
 }
 
 
@@ -500,12 +519,12 @@ const sketch = (p) => {
         const videoSize = getVideoSize();
 
         if (appState === 'loading') {
-            drawStatus(p, 'System lädt...');
+            // drawStatus(p, 'System lädt...');
             return;
         }
 
         if (!video || video.readyState < 2) {
-            drawStatus(p, 'Kamera lädt...');
+            // drawStatus(p, 'Kamera lädt...');
             return;
         }
 
@@ -552,7 +571,7 @@ const sketch = (p) => {
 }
     drawScannerCorners(p);
 
-    drawStatus(p, 'Kein Gesicht erkannt');
+    // drawStatus(p, 'Kein Gesicht erkannt');
     return;
 }
 
@@ -663,7 +682,7 @@ updatePanelUI({
         // Schritt 3: echte Mood-Analyse läuft
         if (appState === 'analyzing') {
             
-            drawStatus(p, 'Emotional profile wird berechnet...');
+            // drawStatus(p, 'Emotional profile wird berechnet...');
 
             updatePanelUI({
         appState,

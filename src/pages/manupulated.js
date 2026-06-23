@@ -4,7 +4,6 @@
 
 import {
     drawCamera,
-    drawStatus,
 } from "../drawing.js";
 
 import {
@@ -93,7 +92,7 @@ export function runManipulation( p, face, videoSize) {
         const cv = window.cv;
 
         if (!cv?.Mat) {
-            drawStatus(p, 'OPTIMIZATION INITIALIZING...');
+            // drawStatus(p, 'OPTIMIZATION INITIALIZING...');
             p.pop();
             return;
         }
@@ -206,6 +205,6 @@ export function runManipulation( p, face, videoSize) {
         }
         drawBlush(p, mirroredPoints);
         enhanceLipColor( p, lipColorPoints , 50);
-        drawStatus(p, "Stage 4");
+        // drawStatus(p, "Stage 4");
          p.pop();
   }
