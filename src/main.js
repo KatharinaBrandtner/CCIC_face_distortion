@@ -494,7 +494,7 @@ const sketch = (p) => {
                 appState;
         }
 
-        updateFaceWindowVisibility(appState);
+        
 
         const video = getVideo();
         const videoSize = getVideoSize();
