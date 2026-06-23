@@ -1,28 +1,42 @@
-export async function waitForOpenCV() {
+let openCvPromise = null;
 
-  return new Promise((resolve) => {
+export function waitForOpenCV() {
+    if (window.cv?.Mat) {
+        return Promise.resolve(window.cv);
+    }
 
-    const check = () => {
+    if (openCvPromise) {
+        return openCvPromise;
+    }
 
-      if (
-        window.cv &&
-        window.cv.Mat
-      ) {
+    openCvPromise = new Promise((resolve, reject) => {
+        const waitUntilReady = () => {
+            const startedAt = performance.now();
+            const timeout = 15000;
 
-        console.log(
-          "OpenCV bereit"
-        );
+            const check = () => {
+                if (window.cv?.Mat) {
+                    resolve(window.cv);
+                    return;
+                }
 
-        resolve();
-        return;
-      }
+                if (performance.now() - startedAt > timeout) {
+                    reject(
+                        new Error(
+                            "OpenCV wurde geladen, aber nicht initialisiert. Prüfe /opencv/opencv.js."
+                        )
+                    );
+                    return;
+                }
 
-      setTimeout(
-        check,
-        100
-      );
-    };
+                requestAnimationFrame(check);
+            };
 
-    check();
-  });
+            check();
+        };
+
+        waitUntilReady();
+    });
+
+    return openCvPromise;
 }

@@ -103,7 +103,14 @@ export function runManipulation( p, face, videoSize) {
             }
         }
 // source und destination matrizen für opencv
-        const srcMat = cv.imread(p.canvas);
+        const cv = window.cv;
+
+        if (!cv?.Mat) {
+            drawStatus(p, 'OPTIMIZATION INITIALIZING...');
+            p.pop();
+            return;
+        }
+                const srcMat = cv.imread(p.canvas);
         const dstMat = srcMat.clone();
 
         try {
