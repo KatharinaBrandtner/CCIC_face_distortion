@@ -1,10 +1,11 @@
-
 // in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
 // die imports usw verweisen dann noch auf die restlichen nötigen dateien
 
 import p5 from 'p5';
 
-import { waitForOpenCV } from "../opencvReady.js";
+import {
+    waitForOpenCV
+} from "../opencvReady.js";
 
 import {
     setupFaceTracking,
@@ -62,7 +63,7 @@ function clonePoints(points) {
         y: point.y,
     }));
 }
-export function runManipulation( p, face, videoSize) {   
+export function runManipulation(p, face, videoSize) {
     p.push();
     p.translate(p.width, 0);
     p.scale(-1, 1); 
@@ -101,15 +102,71 @@ export function runManipulation( p, face, videoSize) {
             if (mouthPoints[i]) {
                 finalPoints[i] = mouthPoints[i];
             }
+            // hier wird die eigentliche Verzerrung durchgeführt, indem die Dreiecke von der Originalposition zur neuen Position verzerrt werden
+            warpTriangle(
+                srcMat,
+                dstMat,
+                srcTriangle,
+                dstTriangle
+            );
         }
-// source und destination matrizen für opencv
-        const srcMat = cv.imread(p.canvas);
-        const dstMat = srcMat.clone();
 
-        try {
-            for (const tri of ALL_TRIANGLES) {
+        if (mouthMode === "open") {
+            const scaledPoints = drawScaledMouth(mirroredPoints, openAmount);
+
+            const originalWithCenter = [
+                ...mirroredPoints,
+                createMouthCenterPoint(mirroredPoints),
+            ];
+            // hier ist iwo noch in traingle ehler was den mund angeht 
+            const openMouthTriangles = [
+                ...MOUTH_SCALE_TRIANGLES,
+                ...MOUTH_INNER_FILL_TRIANGLES,
+                [61, 78, 95],
+                [61, 95, 146],
+                [146, 95, 78],
+                [95, 88, 178],
+                [95, 178, 78],
+                [88, 178, 87],
+                [88, 87, 95],
+                [178, 87, 14],
+                [95, 87, 178],
+                [78, 95, 61],
+                [95, 61, 146],
+                [95, 88, 146],
+                [88, 146, 91],
+                [88, 91, 178],
+                [61, 95, 88],
+            ];
+
+            for (const tri of openMouthTriangles) {
+                const srcTriangle = tri.map((id) => {
+                    if (id === 478) {
+                        return originalWithCenter[478];
+                    }
+
+                    return mirroredPoints[id];
+                });
+
+                const dstTriangle = tri.map((id) => {
+                    if (id === 478) {
+                        return scaledPoints[478];
+                    }
+
+                    return scaledPoints[id];
+                });
+
+                warpTriangle(
+                    srcMat,
+                    dstMat,
+                    srcTriangle,
+                    dstTriangle
+                );
+            }
+        } else {
+            for (const tri of MOUTH_TRIANGLES) {
                 const srcTriangle = tri.map((id) => mirroredPoints[id]);
-                const dstTriangle = tri.map((id) => eyePoints[id]);
+                const dstTriangle = tri.map((id) => finalPoints[id]);
 
                 if (
                     srcTriangle.some((pt) => !pt) ||
@@ -117,7 +174,7 @@ export function runManipulation( p, face, videoSize) {
                 ) {
                     continue;
                 }
-// hier wird die eigentliche Verzerrung durchgeführt, indem die Dreiecke von der Originalposition zur neuen Position verzerrt werden
+
                 warpTriangle(
                     srcMat,
                     dstMat,
@@ -216,4 +273,5 @@ export function runManipulation( p, face, videoSize) {
          p.pop();
   }
 
-    
+    p.pop();
+}

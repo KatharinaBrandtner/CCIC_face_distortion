@@ -48,7 +48,7 @@ Das System zeigt verschiedene Kennzahlen:
 
 - 🧴 glattere Haut
 - 👁️ größere Augen
-- 🪞 symmetrischere Gesichtszüge
+- 🪞 stärkere Gesichtsfarben (blush, Lippen)
 - 🙂 angehobene Mundwinkel
 - 😁 permanentes Lächeln
 
@@ -90,6 +90,7 @@ Das Projekt läuft im Browser und verarbeitet aber lokal:
 - CSS
 - JavaScript Modules
 - p5.js
+- openCV
 - mediapipe
 - face-api.js
 - Vite

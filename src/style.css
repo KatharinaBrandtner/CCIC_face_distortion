@@ -4,6 +4,20 @@
   --face-top: 50%; /* Zentriert im Hochformat */
 }
 
+/* .playfair-display-<uniquifier> {
+  font-family: "Playfair Display", serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+}
+
+.urbanist-<uniquifier> {
+  font-family: "Urbanist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+} */
+
 body {
   margin: 0;
   background: black;
@@ -36,52 +50,358 @@ body {
   display: none;
 }
 
-.headline {
+
+/* styling tecte */
+.brand-ui {
   position: absolute;
-  top: 3vh;
+
+  top: 48px;
+  left: 48px;
+
+  z-index: 50;
+
+  display: flex;
+  flex-direction: column;
+
+  pointer-events: none;
+}
+
+.brand-star {
+  width: 40px;
+  height: 40px;
+
+  clip-path: polygon(
+    50% 0%,
+    58% 42%,
+    100% 50%,
+    58% 58%,
+    50% 100%,
+    42% 58%,
+    0% 50%,
+    42% 42%
+  );
+
+  background: rgb(0, 228, 49);
+
+  transition: background-color 0.15s ease, transform 0.25s ease;
+
+  filter: drop-shadow(0 0 10px rgba(0, 228, 49, 0.8))
+    drop-shadow(0 0 20px rgba(0, 228, 49, 0.6));
+
+  margin-bottom: 18px;
+}
+
+.brand-star.glow-burst {
+  animation: starBurst 0.5s ease-in-out;
+}
+
+.brand-title {
+  display: flex;
+  flex-direction: column;
+
+  color: white;
+  font-family: "Playfair Display", serif;
+
+  line-height: 0.92;
+
+  font-size: 115px;
+  font-weight: 300;
+
+  letter-spacing: -0.03em;
+}
+
+.status-message {
+  margin-top: 18px;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 28px;
+  font-weight: 600;
+
+  letter-spacing: 0.03em;
+
+  text-transform: uppercase;
+}
+
+.top-right-message {
+  position: fixed;
+
+  top: 32px;
+  right: 42px;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 20px;
+  font-weight: 600;
+
+  letter-spacing: 0.05em;
+
+  text-transform: uppercase;
+}
+.searching-prompt {
+
+  position: absolute;
+
   left: 50%;
+  top: 72%;
+
   transform: translateX(-50%);
-  width: 100%;
-  text-align: center;
-  z-index: 10;
-  pointer-events: none;
+
+  z-index: 30;
+
+  color: rgba(255,255,255,.82);
+
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 48px;
+
+  font-weight: 400;
+
+  letter-spacing: .08em;
+
+  text-transform: uppercase;
+
+  text-shadow:
+    0 0 20px rgba(255,255,255,.08);
+
+  transition: opacity .4s ease;
 }
 
-.headline h1 {
-  margin: 0;
-  font-size: 7vw;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
+.searching-star {
 
-/* Neue funktionierende Aussparung */
-.face-window {
   position: absolute;
-  top: var(--face-top);
+
   left: 50%;
+  top: 82.5%;
+  margin-top: 10px;
 
-  width: var(--face-width);
-  height: var(--face-height);
+  transform: translateX(-50%);
 
-  transform: translate(-50%, -50%);
+  width: 120px;
 
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
+  height: auto;
 
-  /*
-    Das macht die Abdunklung außen.
-    Innen bleibt frei.
-  */
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
+  z-index: 30;
 
-  z-index: 5;
   pointer-events: none;
 
-  opacity: 1;
-  visibility: visible;
+  opacity: .95;
+
+  filter: blur(1.5px);
 }
 
-.face-window.is-hidden {
+
+
+/* =========================
+   PERFECT YOU PANEL
+========================= */
+
+.ui-panel {
+
+  position: absolute;
+  z-index: 9999;
+
+  left: 50%;
+  bottom: 48px;
+
+  transform: translateX(-50%);
+
+  width: min(78vw, 980px);
+  min-height: 340px;
+
+  padding: 32px;
+
+  border-radius: 24px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(20,20,20,.25),
+      rgba(10,10,10,.45)
+    );
+
+  backdrop-filter: blur(24px);
+
+  border: 1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    0 12px 40px rgba(0,0,0,.35),
+    inset 0 1px 0 rgba(255,255,255,.08);
+
   opacity: 0;
-  visibility: hidden;
+
+  pointer-events: none;
+
+  transition:
+    opacity .4s ease,
+    border-color .4s ease;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.ui-panel.visible {
+  opacity: 1;
+}
+
+.ui-panel::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 24px;
+  right: 24px;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--accent),
+      transparent
+    );
+
+  opacity: .5;
+}
+
+/* =========================
+   PRE ANALYZING TEXT
+========================= */
+
+#panel-content {
+
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  padding-bottom: 48px;
+}
+
+.panel-row {
+
+  font-size: 36px;
+
+  font-weight: 500;
+
+  letter-spacing: .05em;
+
+  color: rgba(255,255,255,.82);
+
+  margin-bottom: 28px;
+}
+
+/* =========================
+   LABELS
+========================= */
+
+.panel-label {
+
+  font-size: 20px;
+
+  letter-spacing: .14em;
+
+  font-weight: 500;
+
+
+  text-transform: uppercase;
+
+  color: rgba(255,255,255,.55);
+
+  margin-bottom: 10px;
+}
+
+/* =========================
+   VALUES
+========================= */
+
+.panel-value {
+
+  font-size: 60px;
+
+  font-weight: 700;
+
+  line-height: .9;
+
+  margin-bottom: 24px;
+}
+/* =========================
+   DIVIDER
+========================= */
+
+.panel-divider {
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.15),
+      transparent
+    );
+
+   margin: 0px 0 34px;
+}
+
+/* =========================
+   PROGRESS TRACK
+========================= */
+
+.progress-track {
+
+  position: absolute;
+
+  left: 32px;
+  right: 32px;
+
+  bottom: 65px;
+
+  height: 15px;
+
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  background:
+    rgba(255,255,255,.08);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.05);
+}
+
+/* =========================
+   PROGRESS FILL
+========================= */
+
+.progress-fill {
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--accent);
+
+  box-shadow:
+    0 0 10px var(--accent),
+    0 0 24px var(--accent);
+
+  transition:
+    width .25s linear,
+    background .3s ease;
 }
