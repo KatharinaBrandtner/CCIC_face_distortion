@@ -2,19 +2,6 @@
 // in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
 // die imports usw verweisen dann noch auf die restlichen nötigen dateien
 
-import p5 from 'p5';
-
-import { waitForOpenCV } from "../opencvReady.js";
-
-import {
-    setupFaceTracking,
-    getFaces,
-    getVideo,
-    getVideoSize,
-    hasFace,
-    isFaceTrackingReady,
-} from "../faceTracking.js";
-
 import {
     drawCamera,
     drawStatus,
@@ -103,7 +90,14 @@ export function runManipulation( p, face, videoSize) {
             }
         }
 // source und destination matrizen für opencv
-        const srcMat = cv.imread(p.canvas);
+        const cv = window.cv;
+
+        if (!cv?.Mat) {
+            drawStatus(p, 'OPTIMIZATION INITIALIZING...');
+            p.pop();
+            return;
+        }
+                const srcMat = cv.imread(p.canvas);
         const dstMat = srcMat.clone();
 
         try {
