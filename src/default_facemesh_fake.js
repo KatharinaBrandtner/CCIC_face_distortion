@@ -20,7 +20,7 @@ export function drawDefaultMesh(
         Math.min(
             p.width,
             p.height
-        ) * 0.35 *
+        ) * 0.68 *
         pulse;
 
    

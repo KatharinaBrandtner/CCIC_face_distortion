@@ -184,7 +184,7 @@ export function drawSparkle(
 }
 
 export function drawManipulationSparkles(p, currentTintColor) {
-    if (p.frameCount % 19 === 0) {
+    if (p.frameCount % 15 === 0) {
         sparkles.push({
             x: p.random(
                 p.width * 0.2,
@@ -196,7 +196,7 @@ export function drawManipulationSparkles(p, currentTintColor) {
                 p.height * 0.8
             ),
 
-            size: p.random(30, 80),
+            size: p.random(30, 100),
 
             age: 0,
             maxAge: p.random(120, 200)

@@ -50,37 +50,6 @@ body {
   display: none;
 }
 
-/* Neue funktionierende Aussparung */
-/* .face-window { */
-  /* position: absolute;
-  top: var(--face-top);
-  left: 50%;
-
-  width: var(--face-width);
-  height: var(--face-height);
-
-  transform: translate(-50%, -50%);
-
-  border: 3px solid rgba(255, 255, 255, 0.9);
-  border-radius: 50%; */
-
-  /*
-    Das macht die Abdunklung außen.
-    Innen bleibt frei.
-  */
-  /* box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
-
-  z-index: 5;
-  pointer-events: none;
-
-  opacity: 1;
-  visibility: visible; */
-/* } */
-
-/* .face-window.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-} */
 
 /* styling tecte */
 .brand-ui {

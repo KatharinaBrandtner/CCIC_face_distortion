@@ -42,7 +42,6 @@ export function shouldShowMoodVisuals(appState, mood) {
     return (
         appState !== 'loading' &&
         appState !== 'searching' &&
-        // appState !== 'preanalyzing' &&
         mood &&
         mood.label &&
         mood.label !== 'unknown'
@@ -131,68 +130,7 @@ export function getFaceWindowCutout(p) {
     };
 }
 
-// export function drawAnalysisOverlay(p, progress, mood, appState) {
-//     const [r, g, b] = getInterfaceColor(mood, appState);
 
-//     const panel = getPanelUnderFace(p, 300);
-
-//     const padding = 32;
-//     const leftX = panel.x + padding;
-//     const topY = panel.y + 34;
-//     const rightX = panel.x + panel.w - padding;
-
-//     p.push();
-
-
-//     // Panel Background
-//     p.noStroke();
-//     p.fill(0, 0, 0, 135);
-//     p.rect(panel.x, panel.y, panel.w, panel.h, 16);
-
-//     // Panel Border
-//     p.stroke(r, g, b, 90);
-//     p.strokeWeight(1);
-//     p.noFill();
-//     p.rect(panel.x, panel.y, panel.w, panel.h, 16);
-
-//     // Text
-//     p.noStroke();
-//     p.textAlign(p.LEFT, p.TOP);
-//     p.textSize(22);
-//     p.fill(r, g, b);
-
-//     p.text('ANALYZING FACE...', leftX, topY);
-//     p.text('DETECTING EMOTIONAL PROFILE...', leftX, topY + 62);
-//     p.text('CALCULATING POTENTIAL...', leftX, topY + 124);
-
-//     // Progress Bar
-//     const progressBarX = leftX;
-//     const progressBarY = topY + 188;
-//     const progressBarWidth = rightX - leftX;
-//     const progressBarHeight = 18;
-
-//     const safeProgress = p.constrain(progress, 0, 1);
-
-//     p.noStroke();
-//     p.fill(255, 255, 255, 35);
-//     p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
-
-//     p.fill(r, g, b);
-//     p.rect(
-//         progressBarX,
-//         progressBarY,
-//         progressBarWidth * safeProgress,
-//         progressBarHeight,
-//         4
-//     );
-
-//     p.stroke(r, g, b, 180);
-//     p.strokeWeight(1);
-//     p.noFill();
-//     p.rect(progressBarX, progressBarY, progressBarWidth, progressBarHeight, 4);
-
-//     p.pop();
-// }
 export function getMoodVisuals(mood) {
     const label = (mood?.label || 'neutral').toLowerCase();
 
@@ -680,7 +618,7 @@ export function drawFakeFaceMesh(p) {
 
 export function drawScannerCorners(p) {
 
-   const size = 420;
+   const size = 700;
 
     const cx = p.width / 2;
     const cy = p.height * 0.45;

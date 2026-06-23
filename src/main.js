@@ -21,7 +21,6 @@ import {
     drawCamera,
     drawFacePoints,
     drawStatus,
-    // drawAnalysisOverlay,
     drawMoodTint,
     drawMoodResultPanel,
     getMoodColor,
@@ -113,20 +112,20 @@ let lockedPerfectFaceScore = null;
 let perfectFaceAnalyzed = false;
 
 let faceDetectedTime = null;
-const FACE_DETECTION_DELAY = 15000;
+const FACE_DETECTION_DELAY = 2000;
 // const FACE_DETECTION_DELAY = 1500;
 
 let analysisStartTime = 0;
-const ANALYSIS_DURATION = 3500;
+const ANALYSIS_DURATION = 4000;
 // const ANALYSIS_DURATION = 3500;
 
 // bevor manipulating einsetzt
 let analyzedStartTime = 0;
-const RESULT_DISPLAY_DURATION = 1500;
+const RESULT_DISPLAY_DURATION = 3000;
 // const RESULT_DISPLAY_DURATION = 1500;
 
 let manipulationStartTime = 0;
-const MANIPULATION_DURATION = 5000;
+const MANIPULATION_DURATION = 3500;
 // const MANIPULATION_DURATION = 3000;
 
 
@@ -257,18 +256,6 @@ function updateBrandingUI(
 }
 
 
-function updateFaceWindowVisibility(appState) {
-    // const faceWindow = document.querySelector('.face-window');
-
-    // const shouldShowFaceWindow =
-    //     appState === 'loading' ||
-    //     appState === 'searching';
-
-    // if (faceWindow) {
-    //     faceWindow.classList.toggle('is-hidden', !shouldShowFaceWindow);
-    // }
-}
-
 function drawMirroredCameraLayer(p, drawFunction) {
     p.push();
     p.translate(p.width, 0);
@@ -385,12 +372,6 @@ function updatePanelUI({
 
 const sketch = (p) => {
 
-//   p.preload = () => {
-//      console.log('PRELOAD RUNNING');
-
-   
-
-// };
     p.setup = async () => {
 
         defaultMeshImg =
@@ -545,8 +526,6 @@ const sketch = (p) => {
                 face &&
                 facePointAlpha > 0 &&
                 appState !== 'loading' 
-                // &&
-                // appState !== 'searching'
             ) {
                 drawFacePoints(
                     p,
@@ -557,11 +536,6 @@ const sketch = (p) => {
             }
         });
 
-        // Wenn kein Gesicht da ist
-        console.log(
-    'draw mesh:',
-    defaultMeshImg
-);
         if (!faceDetected && appState === 'searching') {
     faceDetectedTime = null;
 
