@@ -2,19 +2,6 @@
 // in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
 // die imports usw verweisen dann noch auf die restlichen nötigen dateien
 
-import p5 from 'p5';
-
-import { waitForOpenCV } from "../opencvReady.js";
-
-import {
-    setupFaceTracking,
-    getFaces,
-    getVideo,
-    getVideoSize,
-    hasFace,
-    isFaceTrackingReady,
-} from "../faceTracking.js";
-
 import {
     drawCamera,
     drawStatus,
