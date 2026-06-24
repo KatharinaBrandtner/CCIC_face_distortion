@@ -22,7 +22,7 @@ body {
   margin: 0;
   background: black;
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: "Urbanist", sans-serif;
   overflow: hidden;
 }
 
@@ -50,7 +50,6 @@ body {
   display: none;
 }
 
-
 /* styling tecte */
 .brand-ui {
   position: absolute;
@@ -67,8 +66,8 @@ body {
 }
 
 .brand-star {
-  width: 40px;
-  height: 40px;
+  width: 7vw;
+  height: 7vw;
 
   clip-path: polygon(
     50% 0%,
@@ -91,57 +90,97 @@ body {
   margin-bottom: 18px;
 }
 
-.brand-star.glow-burst {
-  animation: starBurst 0.5s ease-in-out;
-}
-
 .brand-title {
   display: flex;
   flex-direction: column;
 
   color: white;
   font-family: "Playfair Display", serif;
+  font-size: 13vw;
 
-  line-height: 0.92;
+  line-height: 0.98;
 
-  font-size: 115px;
-  font-weight: 300;
+  /* font-weight: 100; */
 
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
 }
 
 .status-message {
-  margin-top: 18px;
+  margin-top: 1.2vh;
 
   color: white;
   font-family: "Urbanist", sans-serif;
 
-  font-size: 28px;
+  font-size: 4.2vw;
+
   font-weight: 600;
 
   letter-spacing: 0.03em;
 
   text-transform: uppercase;
 }
+.manipulated-message {
+  position: absolute;
+
+  z-index: 10000;
+
+  opacity: 0;
+
+  transition: opacity 0.4s ease;
+
+  color: white;
+
+  font-family: "Urbanist", sans-serif;
+
+  text-transform: uppercase;
+
+  line-height: 1.05;
+
+  pointer-events: none;
+
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  bottom: 31vh;
+
+  white-space: nowrap;
+
+  font-size: 4.2vw;
+
+  font-weight: 600;
+
+  letter-spacing: 0.02em;
+
+  text-align: center;
+
+  transition: opacity 0.8s ease;
+}
+
+.manipulated-message.visible {
+  opacity: 1;
+}
 
 .top-right-message {
   position: fixed;
 
-  top: 32px;
-  right: 42px;
+  top: 48px;
+  right: 48px;
 
   color: white;
   font-family: "Urbanist", sans-serif;
 
-  font-size: 20px;
   font-weight: 600;
 
   letter-spacing: 0.05em;
 
+  font-size: 3vw;
+
   text-transform: uppercase;
 }
 .searching-prompt {
-
   position: absolute;
 
   left: 50%;
@@ -151,26 +190,26 @@ body {
 
   z-index: 30;
 
-  color: rgba(255,255,255,.82);
+  color: rgba(255, 255, 255, 0.82);
 
   font-family: "Urbanist", sans-serif;
 
-  font-size: 48px;
+  font-size: 6vw;
 
-  font-weight: 400;
+  font-weight: 600;
 
-  letter-spacing: .08em;
+  letter-spacing: 0.03em;
 
   text-transform: uppercase;
 
-  text-shadow:
-    0 0 20px rgba(255,255,255,.08);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
 
-  transition: opacity .4s ease;
+  transition: opacity 0.4s ease;
+
+  text-align: center;
 }
 
 .searching-star {
-
   position: absolute;
 
   left: 50%;
@@ -179,7 +218,7 @@ body {
 
   transform: translateX(-50%);
 
-  width: 120px;
+  width: 160px;
 
   height: auto;
 
@@ -187,19 +226,16 @@ body {
 
   pointer-events: none;
 
-  opacity: .95;
+  opacity: 0.95;
 
   filter: blur(1.5px);
 }
-
-
 
 /* =========================
    PERFECT YOU PANEL
 ========================= */
 
 .ui-panel {
-
   position: absolute;
   z-index: 9999;
 
@@ -215,28 +251,24 @@ body {
 
   border-radius: 24px;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20,20,20,.25),
-      rgba(10,10,10,.45)
-    );
+  background: linear-gradient(
+    180deg,
+    rgba(20, 20, 20, 0.35),
+    rgba(10, 10, 10, 0.55)
+  );
 
   backdrop-filter: blur(24px);
 
-  border: 1px solid rgba(255,255,255,.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
-  box-shadow:
-    0 12px 40px rgba(0,0,0,.35),
-    inset 0 1px 0 rgba(255,255,255,.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
   opacity: 0;
 
   pointer-events: none;
 
-  transition:
-    opacity .4s ease,
-    border-color .4s ease;
+  transition: opacity 0.4s ease, border-color 0.4s ease;
 
   color: white;
   font-family: "Urbanist", sans-serif;
@@ -252,7 +284,6 @@ body {
 }
 
 .ui-panel::before {
-
   content: "";
 
   position: absolute;
@@ -263,15 +294,9 @@ body {
 
   height: 1px;
 
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      var(--accent),
-      transparent
-    );
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
 
-  opacity: .5;
+  opacity: 0.5;
 }
 
 /* =========================
@@ -279,7 +304,6 @@ body {
 ========================= */
 
 #panel-content {
-
   flex: 1;
 
   width: 100%;
@@ -294,14 +318,13 @@ body {
 }
 
 .panel-row {
-
   font-size: 36px;
 
   font-weight: 500;
 
-  letter-spacing: .05em;
+  letter-spacing: 0.05em;
 
-  color: rgba(255,255,255,.82);
+  color: rgba(255, 255, 255, 0.82);
 
   margin-bottom: 28px;
 }
@@ -311,19 +334,17 @@ body {
 ========================= */
 
 .panel-label {
+  font-size: 2.3vw;
 
-  font-size: 20px;
-
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
 
   font-weight: 500;
 
-
   text-transform: uppercase;
 
-  color: rgba(255,255,255,.55);
+  color: rgba(255, 255, 255, 0.55);
 
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 /* =========================
@@ -331,32 +352,29 @@ body {
 ========================= */
 
 .panel-value {
-
-  font-size: 60px;
+  font-size: 7vw;
 
   font-weight: 700;
 
-  line-height: .9;
+  line-height: 0.9;
 
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
 /* =========================
    DIVIDER
 ========================= */
 
 .panel-divider {
-
   height: 1px;
 
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(255,255,255,.15),
-      transparent
-    );
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
 
-   margin: 0px 0 34px;
+  margin: -10px 0 25px;
 }
 
 /* =========================
@@ -364,7 +382,6 @@ body {
 ========================= */
 
 .progress-track {
-
   position: absolute;
 
   left: 32px;
@@ -378,11 +395,9 @@ body {
 
   overflow: hidden;
 
-  background:
-    rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, 0.08);
 
-  box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 /* =========================
@@ -390,18 +405,13 @@ body {
 ========================= */
 
 .progress-fill {
-
   height: 100%;
 
   border-radius: inherit;
 
   background: var(--accent);
 
-  box-shadow:
-    0 0 10px var(--accent),
-    0 0 24px var(--accent);
+  box-shadow: 0 0 10px var(--accent), 0 0 24px var(--accent);
 
-  transition:
-    width .25s linear,
-    background .3s ease;
+  transition: width 0.25s linear, background 0.3s ease;
 }

@@ -1,3 +1,23 @@
+// in dieser Datei sind folgende funktionen enthalten:
+// getcoverrect(canvasW, canvasH, videoW, videoH) - berechnet das Rechteck, in dem das Video auf der Leinwand zentriert und skaliert wird
+// drawCamera(p, video, videoSize) - zeichnet das Video auf der Leinwand basierend auf dem berechneten Rechteck
+// shouldShowMoodVisuals(appState, mood) - überprüft, ob die Mood-Visuals basierend auf dem App-Zustand und der Stimmung angezeigt werden sollten
+// getInterfaceColor(mood, appState) - gibt die Farbe für die Benutzeroberfläche basierend auf der Stimmung und dem App-Zustand zurück
+// drawFacePoints(p, face, videoSize, alpha) - zeichnet die Gesichtspunkte auf der Leinwand basierend auf den gegebenen Gesichtsdaten und der Transparenz
+// drawStatus(p, text, mood, appState) - zeichnet den Statustext auf der Leinwand mit der entsprechenden Farbe basierend auf der Stimmung und dem App-Zustand
+// getFaceWindowCutout(p) - berechnet die Position und Größe des Gesichtsfensters auf der Leinwand
+// getMoodVisuals(mood) - gibt die visuellen Eigenschaften (Label und Farbe) basierend auf der Stimmung zurück
+// drawMoodTint(p, mood, appState, overrideColor) - zeichnet einen Mood-Tint-Effekt auf der Leinwand basierend auf der Stimmung und dem App-Zustand
+// drawSearchingOverlay(p, detectionProgress) - zeichnet einen Such-Overlay-Effekt auf der Leinwand basierend auf dem Erkennungsfortschritt
+// drawFakeFaceMesh(p) - zeichnet ein gefälschtes Gesichtsgitter auf der Leinwand
+// drawScannerCorners(p) - zeichnet die Ecken des Scanners auf der Leinwand
+// getHappinessScore(mood) - gibt den Glücklichkeitswert basierend auf der Stimmung zurück
+// getPanelUnderFace(p, panelH) - berechnet die Position und Größe des Panels unter dem Gesicht auf der Leinwand
+// drawMoodResultPanel(p, mood, appState, face, videoSize, perfectFaceScore, overrideColor) - zeichnet das Mood-Ergebnis-Panel auf der Leinwand basierend auf der Stimmung, dem App-Zustand und den Gesichtsdaten
+// getMoodColor(mood) - gibt die Farbe basierend auf der Stimmung zurück
+// updateStarColor(appState, lockedMood, currentTintColor) - aktualisiert die Farbe des Sterns basierend auf dem App-Zustand, der gesperrten Stimmung und der aktuellen Tint-Farbe
+// triggerStarBurst() - löst einen Sternenexplosions-Effekt aus
+
 export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     const scale = Math.max(canvasW / videoW, canvasH / videoH);
 
@@ -86,7 +106,7 @@ export function drawFacePoints(
             (point.y / videoSize.height) *
             rect.h;
 
-        p.circle(x, y, 2);
+        p.circle(x, y, 3);
     }
 }
 
@@ -211,9 +231,9 @@ export function getMoodVisuals(mood) {
         gradientneutral: {
             label: 'NEUTRAL',
             color: {
-               r: 38,
-               g: 178,
-               b: 125
+                r: 38,
+                g: 178,
+                b: 125
             },
         },
 
@@ -409,89 +429,89 @@ export function drawSearchingOverlay(p, detectionProgress = 0) {
     const cy = p.height * 0.50;
 
     const maxRadius = Math.sqrt(
-    cx * cx + cy * cy
-);
-
-const innerRadius =
-    p.lerp(
-        p.width * 0.017,
-        0,
-        detectionProgress
+        cx * cx + cy * cy
     );
 
-const outerRadius =
-    p.lerp(
-        p.width * 0.50,
-        maxRadius,
-        detectionProgress
-    );
+    const innerRadius =
+        p.lerp(
+            p.width * 0.017,
+            0,
+            detectionProgress
+        );
+
+    const outerRadius =
+        p.lerp(
+            p.width * 0.50,
+            maxRadius,
+            detectionProgress
+        );
 
     const gradient =
-    ctx.createRadialGradient(
-        cx,
-        cy,
-        innerRadius,
-        cx,
-        cy,
-        outerRadius
-    );
+        ctx.createRadialGradient(
+            cx,
+            cy,
+            innerRadius,
+            cx,
+            cy,
+            outerRadius
+        );
 
     const stop0 =
-    p.lerp(
-        0.55,
-        0.0,
-        detectionProgress
-    );
+        p.lerp(
+            0.55,
+            0.0,
+            detectionProgress
+        );
     const stop25 =
-    p.lerp(
-        0.65,
-        0.20,
-        detectionProgress
-    );
+        p.lerp(
+            0.65,
+            0.20,
+            detectionProgress
+        );
     const stop50 =
-    p.lerp(
-        0.82,
-        0.10,
-        detectionProgress
-    );
+        p.lerp(
+            0.82,
+            0.10,
+            detectionProgress
+        );
     const stop75 =
-    p.lerp(
-        0.92,
-        0.35,
-        detectionProgress
-    );
+        p.lerp(
+            0.92,
+            0.35,
+            detectionProgress
+        );
     const stop100 =
-    p.lerp(
-        0.98,
-        0.80,
-        detectionProgress
+        p.lerp(
+            0.98,
+            0.80,
+            detectionProgress
+        );
+
+
+    gradient.addColorStop(
+        0,
+        `rgba(0,0,0,${stop0})`
     );
 
-    
     gradient.addColorStop(
-    0,
-    `rgba(0,0,0,${stop0})`
-);
+        0.25,
+        `rgba(0,0,0,${stop25})`
+    );
 
-gradient.addColorStop(
-    0.25,
-    `rgba(0,0,0,${stop25})`
-);
+    gradient.addColorStop(
+        0.50,
+        `rgba(0,0,0,${stop50})`
+    );
 
-gradient.addColorStop(
-    0.50,
-    `rgba(0,0,0,${stop50})`
-);
+    gradient.addColorStop(
+        0.75,
+        `rgba(0,0,0,${stop75})`
+    );
 
-gradient.addColorStop(
-    0.75,
-    `rgba(0,0,0,${stop75})`
-);
-
-gradient.addColorStop(
-    1,
-    `rgba(0,0,0,${stop100})`
-);
+    gradient.addColorStop(
+        1,
+        `rgba(0,0,0,${stop100})`
+    );
     ctx.save();
 
     ctx.fillStyle = gradient;
@@ -512,10 +532,10 @@ export function drawFakeFaceMesh(p) {
     const cy = p.height * 0.45;
 
     const scale =
-    Math.min(
-        p.width,
-        p.height
-    ) * 0.34;
+        Math.min(
+            p.width,
+            p.height
+        ) * 0.34;
 
     const pulse =
         1 +
@@ -579,9 +599,7 @@ export function drawFakeFaceMesh(p) {
     );
 
     for (
-        let i = 0;
-        i < 120;
-        i++
+        let i = 0; i < 120; i++
     ) {
 
         const angle =
@@ -618,7 +636,7 @@ export function drawFakeFaceMesh(p) {
 
 export function drawScannerCorners(p) {
 
-   const size = 700;
+    const size = 700;
 
     const cx = p.width / 2;
     const cy = p.height * 0.45;
@@ -636,16 +654,16 @@ export function drawScannerCorners(p) {
     p.strokeWeight(4);
 
     p.stroke(
-    255,
-    255,
-    255,
-    220
-);
+        255,
+        255,
+        255,
+        220
+    );
 
     p.line(x, y, x + l, y);
     p.line(x, y, x, y + l);
 
-    
+
 
     p.line(
         x,
@@ -661,7 +679,7 @@ export function drawScannerCorners(p) {
         y + size - l
     );
 
-    
+
 
     p.line(
         x + size,
