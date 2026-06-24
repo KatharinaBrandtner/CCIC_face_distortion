@@ -670,7 +670,6 @@ const sketch = (p) => {
                 1
             );
 
-            // NEU:
             // Nur manipulieren, wenn das Gesicht gerade da ist.
             if (face && faceProgress > 0) {
                 runManipulation(
@@ -754,7 +753,15 @@ const sketch = (p) => {
 
         // Schritt 6: Manipulated
         if (appState === 'manipulated') {
-            // NEU:
+            const elapsedSinceManipulated =
+            p.millis() - manipulatedStartTime;
+
+            const RESTART_AFTER_MANIPULATED = 30000;
+
+            if (elapsedSinceManipulated >= RESTART_AFTER_MANIPULATED) {
+                resetToSearching();
+                return;
+}
             // Kein Fehler, wenn das Gesicht kurz weg ist.
             if (face) {
                 runManipulation(
