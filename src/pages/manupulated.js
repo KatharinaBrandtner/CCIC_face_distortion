@@ -1,9 +1,6 @@
 // in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
 // die imports usw verweisen dann noch auf die restlichen nötigen dateien
 
-import {
-    drawCamera,
-} from "../drawing.js";
 
 import {
     warpTriangle,
@@ -100,7 +97,6 @@ export function runManipulation(
 
 
     // augen manipulation
-    // const eyePoints = createManipulatedPoints(mirroredPoints);
 
     const manipulatedEyePoints =
         createManipulatedPoints(
@@ -128,7 +124,6 @@ export function runManipulation(
 
 
     // mund manipulation
-    // const mouthResult = createManipulatedMouthPoints(mirroredPoints);
 
     const manipulatedMouthResult =
         createManipulatedMouthPoints(
@@ -195,7 +190,6 @@ export function runManipulation(
     const cv = window.cv;
 
     if (!cv?.Mat) {
-        // drawStatus(p, 'OPTIMIZATION INITIALIZING...');
         p.pop();
         return;
     }
@@ -318,6 +312,5 @@ export function runManipulation(
         lipColorPoints,
         50 * lipProgress
     );
-    // drawStatus(p, "Stage 4");
     p.pop();
 }
