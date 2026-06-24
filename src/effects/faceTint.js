@@ -1,5 +1,12 @@
-export function drawBlush(p, points) {
+export function drawBlush(
+    p,
+    points,
+    progress = 1
+) {
     if (!points) return;
+
+    const blushAlpha =
+    70 * progress;
 
     // Wangenpunkte aus FaceMesh
     const leftOuter = points[234];
@@ -46,7 +53,7 @@ export function drawBlush(p, points) {
 
     // weichere, kompaktere Fläche
     p.drawingContext.filter = "blur(18px)";
-    p.fill(255, 45, 95, 70);
+    p.fill(255, 45, 95, blushAlpha);
 
     p.ellipse(leftCheek.x, leftCheek.y, blushW, blushH);
     p.ellipse(rightCheek.x, rightCheek.y, blushW, blushH);

@@ -1,13 +1,10 @@
-
-
-
 export function drawDefaultMesh(
     p,
     img,
     alphaMultiplier = 1
 ) {
 
-    
+
     if (!img) return;
 
     const pulse =
@@ -23,14 +20,14 @@ export function drawDefaultMesh(
         ) * 0.68 *
         pulse;
 
-   
+
     const alpha =
-(
-    95 +
-    Math.sin(
-        p.millis() * 0.001
-    ) * 20
-) * alphaMultiplier;
+        (
+            95 +
+            Math.sin(
+                p.millis() * 0.001
+            ) * 20
+        ) * alphaMultiplier;
 
     p.push();
 
@@ -42,9 +39,9 @@ export function drawDefaultMesh(
     p.imageMode(
         p.CENTER
     );
-p.drawingContext.shadowBlur = 12;
-p.drawingContext.shadowColor =
-    'rgba(255,255,255,0.25)';
+    p.drawingContext.shadowBlur = 12;
+    p.drawingContext.shadowColor =
+        'rgba(255,255,255,0.25)';
     p.image(
         img,
         p.width / 2,

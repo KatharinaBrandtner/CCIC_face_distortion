@@ -211,9 +211,9 @@ export function getMoodVisuals(mood) {
         gradientneutral: {
             label: 'NEUTRAL',
             color: {
-               r: 38,
-               g: 178,
-               b: 125
+                r: 38,
+                g: 178,
+                b: 125
             },
         },
 
@@ -409,89 +409,89 @@ export function drawSearchingOverlay(p, detectionProgress = 0) {
     const cy = p.height * 0.50;
 
     const maxRadius = Math.sqrt(
-    cx * cx + cy * cy
-);
-
-const innerRadius =
-    p.lerp(
-        p.width * 0.017,
-        0,
-        detectionProgress
+        cx * cx + cy * cy
     );
 
-const outerRadius =
-    p.lerp(
-        p.width * 0.50,
-        maxRadius,
-        detectionProgress
-    );
+    const innerRadius =
+        p.lerp(
+            p.width * 0.017,
+            0,
+            detectionProgress
+        );
+
+    const outerRadius =
+        p.lerp(
+            p.width * 0.50,
+            maxRadius,
+            detectionProgress
+        );
 
     const gradient =
-    ctx.createRadialGradient(
-        cx,
-        cy,
-        innerRadius,
-        cx,
-        cy,
-        outerRadius
-    );
+        ctx.createRadialGradient(
+            cx,
+            cy,
+            innerRadius,
+            cx,
+            cy,
+            outerRadius
+        );
 
     const stop0 =
-    p.lerp(
-        0.55,
-        0.0,
-        detectionProgress
-    );
+        p.lerp(
+            0.55,
+            0.0,
+            detectionProgress
+        );
     const stop25 =
-    p.lerp(
-        0.65,
-        0.20,
-        detectionProgress
-    );
+        p.lerp(
+            0.65,
+            0.20,
+            detectionProgress
+        );
     const stop50 =
-    p.lerp(
-        0.82,
-        0.10,
-        detectionProgress
-    );
+        p.lerp(
+            0.82,
+            0.10,
+            detectionProgress
+        );
     const stop75 =
-    p.lerp(
-        0.92,
-        0.35,
-        detectionProgress
-    );
+        p.lerp(
+            0.92,
+            0.35,
+            detectionProgress
+        );
     const stop100 =
-    p.lerp(
-        0.98,
-        0.80,
-        detectionProgress
+        p.lerp(
+            0.98,
+            0.80,
+            detectionProgress
+        );
+
+
+    gradient.addColorStop(
+        0,
+        `rgba(0,0,0,${stop0})`
     );
 
-    
     gradient.addColorStop(
-    0,
-    `rgba(0,0,0,${stop0})`
-);
+        0.25,
+        `rgba(0,0,0,${stop25})`
+    );
 
-gradient.addColorStop(
-    0.25,
-    `rgba(0,0,0,${stop25})`
-);
+    gradient.addColorStop(
+        0.50,
+        `rgba(0,0,0,${stop50})`
+    );
 
-gradient.addColorStop(
-    0.50,
-    `rgba(0,0,0,${stop50})`
-);
+    gradient.addColorStop(
+        0.75,
+        `rgba(0,0,0,${stop75})`
+    );
 
-gradient.addColorStop(
-    0.75,
-    `rgba(0,0,0,${stop75})`
-);
-
-gradient.addColorStop(
-    1,
-    `rgba(0,0,0,${stop100})`
-);
+    gradient.addColorStop(
+        1,
+        `rgba(0,0,0,${stop100})`
+    );
     ctx.save();
 
     ctx.fillStyle = gradient;
@@ -512,10 +512,10 @@ export function drawFakeFaceMesh(p) {
     const cy = p.height * 0.45;
 
     const scale =
-    Math.min(
-        p.width,
-        p.height
-    ) * 0.34;
+        Math.min(
+            p.width,
+            p.height
+        ) * 0.34;
 
     const pulse =
         1 +
@@ -579,9 +579,7 @@ export function drawFakeFaceMesh(p) {
     );
 
     for (
-        let i = 0;
-        i < 120;
-        i++
+        let i = 0; i < 120; i++
     ) {
 
         const angle =
@@ -618,7 +616,7 @@ export function drawFakeFaceMesh(p) {
 
 export function drawScannerCorners(p) {
 
-   const size = 700;
+    const size = 700;
 
     const cx = p.width / 2;
     const cy = p.height * 0.45;
@@ -636,16 +634,16 @@ export function drawScannerCorners(p) {
     p.strokeWeight(4);
 
     p.stroke(
-    255,
-    255,
-    255,
-    220
-);
+        255,
+        255,
+        255,
+        220
+    );
 
     p.line(x, y, x + l, y);
     p.line(x, y, x, y + l);
 
-    
+
 
     p.line(
         x,
@@ -661,7 +659,7 @@ export function drawScannerCorners(p) {
         y + size - l
     );
 
-    
+
 
     p.line(
         x + size,

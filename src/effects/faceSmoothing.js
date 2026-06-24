@@ -118,7 +118,7 @@ function fillPolygon(mask, points, ids, value) {
     contours.delete();
 }
 
-export function applyFaceSmoothing(faceMat, points, strength = 0.55) {
+export function applyFaceSmoothing(faceMat, points, strength = 0.35) {
     if (!faceMat || !points?.length || strength <= 0) {
         return;
     }

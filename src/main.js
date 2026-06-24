@@ -27,9 +27,11 @@ import {
     updateStarColor,
     triggerStarBurst,
     drawSearchingOverlay,
-drawScannerCorners,
+    drawScannerCorners,
 } from './drawing.js';
-import { drawDefaultMesh } from './default_facemesh_fake.js';
+import {
+    drawDefaultMesh
+} from './default_facemesh_fake.js';
 import {
     drawStar,
     drawSparkle,
@@ -120,7 +122,7 @@ let perfectFaceAnalyzed = false;
 
 let faceDetectedTime = null;
 const FACE_DETECTION_DELAY = 2500;
-// const FACE_DETECTION_DELAY = 1500;
+// const FACE_DETECTION_DELAY = 2500;
 
 let analysisStartTime = 0;
 const ANALYSIS_DURATION = 3500;
@@ -129,11 +131,11 @@ const ANALYSIS_DURATION = 3500;
 // bevor manipulating einsetzt
 let analyzedStartTime = 0;
 const RESULT_DISPLAY_DURATION = 6000;
-// const RESULT_DISPLAY_DURATION = 1500;
+// const RESULT_DISPLAY_DURATION = 6000;
 
 let manipulationStartTime = 0;
 const MANIPULATION_DURATION = 4000;
-// const MANIPULATION_DURATION = 3000;
+// const MANIPULATION_DURATION = 4000;
 
 
 let manipulatedStartTime = 0;
@@ -145,7 +147,8 @@ function updateBrandingUI(
     p,
     analyzedStartTime,
     manipulationStartTime,
-    manipulatedStartTime
+    manipulatedStartTime,
+    lockedMood
 ) {
     const statusEl =
         document.querySelector(
@@ -158,9 +161,9 @@ function updateBrandingUI(
         );
 
     const manipulatedMessage =
-    document.querySelector(
-        '#manipulated-message'
-    );    
+        document.querySelector(
+            '#manipulated-message'
+        );
 
     const searchingPrompt =
         document.querySelector(
@@ -168,14 +171,24 @@ function updateBrandingUI(
         );
 
     const searchingStar =
-    document.getElementById(
-        'searching-star'
-    );
+        document.getElementById(
+            'searching-star'
+        );
+
+    statusEl.style.textShadow = 'none';
+    statusEl.style.color = 'white';
 
     if (!statusEl) return;
 
     statusEl.textContent = '';
     topRightEl.textContent = '';
+
+    statusEl.style.textShadow = 'none';
+
+    if (manipulatedMessage) {
+        manipulatedMessage.style.textShadow =
+            '0 0 24px rgba(255,255,255,.08)';
+    }
 
     if (appState === 'searching') {
         statusEl.textContent = '';
@@ -186,16 +199,16 @@ function updateBrandingUI(
             '1' :
             '0';
 
-            
+
     }
 
     if (searchingStar) {
 
-    searchingStar.style.opacity =
-        appState === 'searching'
-            ? '.95'
-            : '0';
-}
+        searchingStar.style.opacity =
+            appState === 'searching' ?
+            '.95' :
+            '0';
+    }
 
     if (appState === 'preAnalyzing') {
         statusEl.textContent =
@@ -207,7 +220,7 @@ function updateBrandingUI(
             'ANALYZING. PLEASE HOLD STILL.';
     }
 
-    if (appState === 'analyzed') {
+    if (appState === 'analyzed' && lockedMood) {
 
         const elapsed =
             p.millis() - analyzedStartTime;
@@ -223,6 +236,29 @@ function updateBrandingUI(
 
         statusEl.textContent =
             `YOU COULD BE HAPPIER... ${seconds}s`;
+
+        const {
+            r,
+            g,
+            b
+        } = getMoodColor(
+            lockedMood
+        );
+
+        statusEl.style.textShadow = `
+    0 0 10px rgba(${r},${g},${b},1),
+    0 0 24px rgba(${r},${g},${b},0.9),
+    0 0 50px rgba(${r},${g},${b},0.8),
+    0 0 100px rgba(${r},${g},${b},0.45),
+    0 0 180px rgba(${r},${g},${b},0.25)
+`;
+        statusEl.style.color = `
+rgb(
+  ${Math.round(255 * 0.88 + r * 0.12)},
+  ${Math.round(255 * 0.88 + g * 0.12)},
+  ${Math.round(255 * 0.88 + b * 0.12)}
+)
+`;
     }
 
     if (appState === 'manipulating') {
@@ -249,6 +285,24 @@ function updateBrandingUI(
         statusEl.textContent =
             'OPTIMIZATION COMPLETE.';
 
+        if (manipulatedMessage) {
+
+            manipulatedMessage.style.textShadow = `
+    0 0 10px rgba(0,228,49,0.8),
+    0 0 24px rgba(0,228,49,0.7),
+    0 0 50px rgba(0,228,49,0.86),
+    0 0 100px rgba(0,228,49,0.3),
+    0 0 180px rgba(0,228,49,0.1)
+`;
+            manipulatedMessage.style.color = `
+rgb(
+  ${Math.round(255 * 0.88 + 0 * 0.12)},
+  ${Math.round(255 * 0.88 + 228 * 0.12)},
+  ${Math.round(255 * 0.88 + 49 * 0.12)}
+)
+`;
+        }
+
         const elapsed =
             p.millis() -
             manipulatedStartTime;
@@ -267,11 +321,11 @@ function updateBrandingUI(
     }
     if (manipulatedMessage) {
 
-    manipulatedMessage.classList.toggle(
-        'visible',
-        appState === 'manipulated'
-    );
-}
+        manipulatedMessage.classList.toggle(
+            'visible',
+            appState === 'manipulated'
+        );
+    }
 }
 
 
@@ -293,17 +347,21 @@ function updatePanelUI({
     perfectFaceScore = 0,
     happinessScore = 0,
     moodLabel = '',
-    color = { r: 255, g: 255, b: 255 }
+    color = {
+        r: 255,
+        g: 255,
+        b: 255
+    }
 }) {
 
-  
+
     const panel =
         document.querySelector('#ui-panel');
 
     const content =
         document.querySelector('#panel-content');
 
-        
+
 
     if (!panel || !content) return;
 
@@ -394,9 +452,9 @@ const sketch = (p) => {
     p.setup = async () => {
 
         defaultMeshImg =
-        await p.loadImage(
-            '/default_mesh.png'
-        );
+            await p.loadImage(
+                '/default_mesh.png'
+            );
 
         const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
         canvas.parent('p5-container');
@@ -411,7 +469,7 @@ const sketch = (p) => {
         appState = 'searching';
     };
 
-   
+
 
 
 
@@ -465,27 +523,27 @@ const sketch = (p) => {
         }
 
         if (
-    appState === 'searching' &&
-    faceDetectedTime
-) {
+            appState === 'searching' &&
+            faceDetectedTime
+        ) {
 
-    const elapsed =
-        p.millis() -
-        faceDetectedTime;
+            const elapsed =
+                p.millis() -
+                faceDetectedTime;
 
-    const transitionProgress =
-        p.constrain(
-            elapsed / 1000,
-            0,
-            1
-        );
+            const transitionProgress =
+                p.constrain(
+                    elapsed / 1000,
+                    0,
+                    1
+                );
 
-    return p.lerp(
-        0,
-        255,
-        transitionProgress
-    );
-}
+            return p.lerp(
+                0,
+                255,
+                transitionProgress
+            );
+        }
 
         return 255;
     }
@@ -501,7 +559,8 @@ const sketch = (p) => {
             p,
             analyzedStartTime,
             manipulationStartTime,
-            manipulatedStartTime
+            manipulatedStartTime,
+            lockedMood
         );
 
         if (
@@ -513,7 +572,7 @@ const sketch = (p) => {
                 appState;
         }
 
-        
+
 
         const video = getVideo();
         const videoSize = getVideoSize();
@@ -544,7 +603,7 @@ const sketch = (p) => {
             if (
                 face &&
                 facePointAlpha > 0 &&
-                appState !== 'loading' 
+                appState !== 'loading'
             ) {
                 drawFacePoints(
                     p,
@@ -556,24 +615,24 @@ const sketch = (p) => {
         });
 
         if (!faceDetected && appState === 'searching') {
-    faceDetectedTime = null;
+            faceDetectedTime = null;
 
-    drawSearchingOverlay(p, 0);
+            drawSearchingOverlay(p, 0);
 
-    if (defaultMeshImg) {
+            if (defaultMeshImg) {
 
-    drawDefaultMesh(
-    p,
-    defaultMeshImg,
-    1
-);
+                drawDefaultMesh(
+                    p,
+                    defaultMeshImg,
+                    1
+                );
 
-}
-    drawScannerCorners(p);
+            }
+            drawScannerCorners(p);
 
-    // drawStatus(p, 'Kein Gesicht erkannt');
-    return;
-}
+            // drawStatus(p, 'Kein Gesicht erkannt');
+            return;
+        }
 
         // Schritt 1: Gesicht erkannt → kurze Wartezeit
 
@@ -593,20 +652,20 @@ const sketch = (p) => {
             const elapsedSinceDetection =
                 p.millis() - faceDetectedTime;
 
-                const detectionProgress =
-    p.constrain(
-        elapsedSinceDetection /
-        FACE_DETECTION_DELAY,
-        0,
-        1
-    );
+            const detectionProgress =
+                p.constrain(
+                    elapsedSinceDetection /
+                    FACE_DETECTION_DELAY,
+                    0,
+                    1
+                );
 
-    const transitionProgress =
-    p.constrain(
-        detectionProgress / 0.35,
-        0,
-        1
-    );
+            const transitionProgress =
+                p.constrain(
+                    detectionProgress / 0.35,
+                    0,
+                    1
+                );
 
             if (
                 elapsedSinceDetection >=
@@ -621,16 +680,16 @@ const sketch = (p) => {
             );
 
             drawSearchingOverlay(p, detectionProgress);
-if (defaultMeshImg) {
+            if (defaultMeshImg) {
 
-    drawDefaultMesh(
-    p,
-    defaultMeshImg,
-    1 - transitionProgress
-);
+                drawDefaultMesh(
+                    p,
+                    defaultMeshImg,
+                    1 - transitionProgress
+                );
 
-}
-drawScannerCorners(p);
+            }
+            drawScannerCorners(p);
 
             return;
         }
@@ -640,20 +699,21 @@ drawScannerCorners(p);
             const elapsed = p.millis() - analysisStartTime;
             const progress = p.constrain(elapsed / ANALYSIS_DURATION, 0, 1);
             drawMoodTint(
-  p,
-  { label: 'preanalyzing' },
-  appState
-);
+                p, {
+                    label: 'preanalyzing'
+                },
+                appState
+            );
 
-updatePanelUI({
-  appState,
-  progress,
-  color: {
-    r: 230,
-    g: 230,
-    b: 230
-  }
-});
+            updatePanelUI({
+                appState,
+                progress,
+                color: {
+                    r: 230,
+                    g: 230,
+                    b: 230
+                }
+            });
 
 
 
@@ -681,24 +741,24 @@ updatePanelUI({
 
         // Schritt 3: echte Mood-Analyse läuft
         if (appState === 'analyzing') {
-            
+
             // drawStatus(p, 'Emotional profile wird berechnet...');
 
             updatePanelUI({
-        appState,
-        progress: 1,
-        color: {
-            r: 230,
-            g: 230,
-            b: 230
-        }
-    });
+                appState,
+                progress: 1,
+                color: {
+                    r: 230,
+                    g: 230,
+                    b: 230
+                }
+            });
 
-    updateStarColor(
-        appState
-    );
+            updateStarColor(
+                appState
+            );
 
-           
+
 
             return;
         }
@@ -715,19 +775,15 @@ updatePanelUI({
             drawMoodTint(p, lockedMood, appState);
 
             const moodColor =
-    getMoodColor(lockedMood);
+                getMoodColor(lockedMood);
 
-updatePanelUI({
-    appState,
-    perfectFaceScore:
-        lockedPerfectFaceScore.total,
-    happinessScore:
-        lockedMood.happyScore || 0,
-    moodLabel:
-        lockedMood.label.toUpperCase(),
-    color:
-        moodColor
-});
+            updatePanelUI({
+                appState,
+                perfectFaceScore: lockedPerfectFaceScore.total,
+                happinessScore: lockedMood.happyScore || 0,
+                moodLabel: lockedMood.label.toUpperCase(),
+                color: moodColor
+            });
 
             updateStarColor(
                 appState,
@@ -763,6 +819,21 @@ updatePanelUI({
                     optimizationProgress
                 );
 
+            const faceProgress =
+                p.constrain(
+                    (optimizationProgress - 0.3) / 0.7,
+                    0,
+                    1
+                );
+            if (faceProgress > 0) {
+                runManipulation(
+                    p,
+                    face,
+                    videoSize,
+                    faceProgress
+                );
+            }
+
             drawMoodTint(
                 p,
                 lockedMood,
@@ -770,42 +841,37 @@ updatePanelUI({
                 currentTintColor
             );
 
-            
-const displayedPerfectFace =
-    Math.round(
-        p.lerp(
-            lockedPerfectFaceScore.total,
-            100,
-            optimizationProgress
-        )
-    );
 
-const displayedHappy =
-    Math.round(
-        p.lerp(
-            lockedMood.happyScore || 0,
-            100,
-            optimizationProgress
-        )
-    );
+            const displayedPerfectFace =
+                Math.round(
+                    p.lerp(
+                        lockedPerfectFaceScore.total,
+                        100,
+                        optimizationProgress
+                    )
+                );
 
-updatePanelUI({
-    appState,
+            const displayedHappy =
+                Math.round(
+                    p.lerp(
+                        lockedMood.happyScore || 0,
+                        100,
+                        optimizationProgress
+                    )
+                );
 
-    perfectFaceScore:
-        displayedPerfectFace,
+            updatePanelUI({
+                appState,
 
-    happinessScore:
-        displayedHappy,
+                perfectFaceScore: displayedPerfectFace,
 
-    moodLabel:
-        optimizationProgress < 0.5
-            ? lockedMood.label.toUpperCase()
-            : 'HAPPY',
+                happinessScore: displayedHappy,
 
-    color:
-        currentTintColor
-});    
+                moodLabel: optimizationProgress < 0.5 ?
+                    lockedMood.label.toUpperCase() : 'HAPPY',
+
+                color: currentTintColor
+            });
 
 
             drawManipulationSparkles(p, currentTintColor);
@@ -843,16 +909,16 @@ updatePanelUI({
 
 
             updatePanelUI({
-    appState,
-    perfectFaceScore: 100,
-    happinessScore: 100,
-    moodLabel: 'HAPPY',
-    color: {
-        r: 0,
-        g: 228,
-        b: 49
-    }
-});
+                appState,
+                perfectFaceScore: 100,
+                happinessScore: 100,
+                moodLabel: 'HAPPY',
+                color: {
+                    r: 0,
+                    g: 228,
+                    b: 49
+                }
+            });
             updateStarColor(
                 appState
             );
