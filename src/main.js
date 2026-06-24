@@ -1,3 +1,14 @@
+// in dieser datei passieren die stages bzw der ablauf von loading bis zu manipulated
+// satges:
+// loading - hier wird die kamera und die modelle geladen
+// searching - hier wird nach einem gesicht gesucht und die kamera wird gespiegelt angezeigt
+// preAnalyzing - hier wird ein fake ladebalken angezeigt während die analyse vorbereitet wird
+// analyzing - hier wird die echte analyse durchgeführt und das mood detection model wird aufgerufen
+// analyzed - hier werden die ergebnisse der analyse angezeigt und ein ladebalken für die manipulation gestartet
+// manipulating - hier wird die manipulation durchgeführt und die funkeleffekte werden angezeigt (maipulation wird ab 25% der Zeit durchgeführt, damit die manipulation nicht zu abrupt ist)
+// manipulated - hier werden die finalen ergebnisse der manipulation angezeigt und ein countdown für die nächste analyse gestartet
+
+
 import './style.css';
 import p5 from 'p5';
 import {

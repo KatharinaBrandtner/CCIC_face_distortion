@@ -1,6 +1,7 @@
-// in der datei sind eyess und mouth gemeinsam gerendert also das ist die datei wies am ende circa aussieht
-// die imports usw verweisen dann noch auf die restlichen nötigen dateien
-
+// in der datei sind sind die funktionen für die manipulation der gesichter und die sparkles die beim manipulieren erscheinen
+// folgende funktionen sind in dieser datei enthalten:
+// clonePoints(points) - erstellt eine tiefe Kopie der gegebenen Punkte
+// runManipulation(p, face, videoSize, progress) - führt die Manipulation der Gesichter durch und rendert die Ergebnisse auf der Leinwand basierend auf dem Fortschritt
 
 import {
     warpTriangle,

@@ -1,3 +1,23 @@
+// in dieser Datei sind folgende funktionen enthalten:
+// getcoverrect(canvasW, canvasH, videoW, videoH) - berechnet das Rechteck, in dem das Video auf der Leinwand zentriert und skaliert wird
+// drawCamera(p, video, videoSize) - zeichnet das Video auf der Leinwand basierend auf dem berechneten Rechteck
+// shouldShowMoodVisuals(appState, mood) - überprüft, ob die Mood-Visuals basierend auf dem App-Zustand und der Stimmung angezeigt werden sollten
+// getInterfaceColor(mood, appState) - gibt die Farbe für die Benutzeroberfläche basierend auf der Stimmung und dem App-Zustand zurück
+// drawFacePoints(p, face, videoSize, alpha) - zeichnet die Gesichtspunkte auf der Leinwand basierend auf den gegebenen Gesichtsdaten und der Transparenz
+// drawStatus(p, text, mood, appState) - zeichnet den Statustext auf der Leinwand mit der entsprechenden Farbe basierend auf der Stimmung und dem App-Zustand
+// getFaceWindowCutout(p) - berechnet die Position und Größe des Gesichtsfensters auf der Leinwand
+// getMoodVisuals(mood) - gibt die visuellen Eigenschaften (Label und Farbe) basierend auf der Stimmung zurück
+// drawMoodTint(p, mood, appState, overrideColor) - zeichnet einen Mood-Tint-Effekt auf der Leinwand basierend auf der Stimmung und dem App-Zustand
+// drawSearchingOverlay(p, detectionProgress) - zeichnet einen Such-Overlay-Effekt auf der Leinwand basierend auf dem Erkennungsfortschritt
+// drawFakeFaceMesh(p) - zeichnet ein gefälschtes Gesichtsgitter auf der Leinwand
+// drawScannerCorners(p) - zeichnet die Ecken des Scanners auf der Leinwand
+// getHappinessScore(mood) - gibt den Glücklichkeitswert basierend auf der Stimmung zurück
+// getPanelUnderFace(p, panelH) - berechnet die Position und Größe des Panels unter dem Gesicht auf der Leinwand
+// drawMoodResultPanel(p, mood, appState, face, videoSize, perfectFaceScore, overrideColor) - zeichnet das Mood-Ergebnis-Panel auf der Leinwand basierend auf der Stimmung, dem App-Zustand und den Gesichtsdaten
+// getMoodColor(mood) - gibt die Farbe basierend auf der Stimmung zurück
+// updateStarColor(appState, lockedMood, currentTintColor) - aktualisiert die Farbe des Sterns basierend auf dem App-Zustand, der gesperrten Stimmung und der aktuellen Tint-Farbe
+// triggerStarBurst() - löst einen Sternenexplosions-Effekt aus
+
 export function getCoverRect(canvasW, canvasH, videoW, videoH) {
     const scale = Math.max(canvasW / videoW, canvasH / videoH);
 

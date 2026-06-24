@@ -1,3 +1,11 @@
+// in dieser Datei sind die funktionen für die manipulation der gesichter und die sparkles die beim manipulieren erscheinen
+// folgende funktionen sind in dieser Datei enthalten:
+// getManipulationTintColor(p, lockedMood, optimizationProgress) - gibt die aktuelle Farbe der Manipulation zurück basierend auf dem lockedMood und dem optimizationProgress
+// lerpColorObject(p, from, to, amount) - interpoliert zwischen zwei Farben basierend auf dem amount
+// drawStar(p, x, y, outerRadius, innerRadius = outerRadius * 0.1, armLengthFactor = 0.75) - zeichnet einen Stern an den gegebenen Koordinaten mit den angegebenen Radien
+// drawSparkle(p, x, y, size, alpha, color) - zeichnet einen funkelnden Effekt an den gegebenen Koordinaten mit der angegebenen Größe und Farbe
+// drawManipulationSparkles(p, currentTintColor) - verwaltet und zeichnet die Funkeleffekte während der Manipulation
+
 import {
     getMoodColor
 } from '../drawing.js';
