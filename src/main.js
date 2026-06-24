@@ -8,9 +8,9 @@
 // manipulating - hier wird die manipulation durchgeführt und die funkeleffekte werden angezeigt (maipulation wird ab 25% der Zeit durchgeführt, damit die manipulation nicht zu abrupt ist)
 // manipulated - hier werden die finalen ergebnisse der manipulation angezeigt und ein countdown für die nächste analyse gestartet
 
-
 import './style.css';
 import p5 from 'p5';
+
 import {
     setupFaceTracking,
     getVideo,
@@ -19,11 +19,13 @@ import {
     isFaceTrackingReady,
     hasFace,
 } from './faceTracking.js';
+
 import {
     setupMoodDetection,
     detectMoodOnce,
     isMoodDetectionReady,
 } from './moodDetection.js';
+
 import {
     drawCamera,
     drawFacePoints,
@@ -34,16 +36,20 @@ import {
     drawSearchingOverlay,
     drawScannerCorners,
 } from './drawing.js';
+
 import {
     drawDefaultMesh
 } from './default_facemesh_fake.js';
+
 import {
     drawManipulationSparkles,
     getManipulationTintColor
 } from './pages/manipulating.js';
+
 import {
     runManipulation
 } from './pages/manupulated.js';
+
 import {
     calculatePerfectFaceScore
 } from './faceScore.js';
@@ -56,53 +62,52 @@ document.querySelector('#app').innerHTML = `
 
     <header class="brand-ui">
 
-  <div id="brand-star" class="brand-star"></div>
+      <div id="brand-star" class="brand-star"></div>
 
-  <div class="brand-title">
-    <span>PERFECT</span>
-    <span>YOU</span>
-  </div>
+      <div class="brand-title">
+        <span>PERFECT</span>
+        <span>YOU</span>
+      </div>
 
-  <div
-    id="status-message"
-    class="status-message"
-  ></div>
+      <div
+        id="status-message"
+        class="status-message"
+      ></div>
 
-  <div
-    id="top-right-message"
-    class="top-right-message"
-  ></div>
+      <div
+        id="top-right-message"
+        class="top-right-message"
+      ></div>
 
-</header>
+    </header>
 
-<div
-  id="searching-prompt"
-  class="searching-prompt"
->
-  HOW PERFECT <br> ARE YOU?
-</div>
+    <div
+      id="searching-prompt"
+      class="searching-prompt"
+    >
+      HOW PERFECT <br> ARE YOU?
+    </div>
 
-<img
-  id="searching-star"
-  class="searching-star"
-  src="/searching_star.png"
-  alt=""
->
+    <img
+      id="searching-star"
+      class="searching-star"
+      src="/searching_star.png"
+      alt=""
+    >
 
-<div
-  id="ui-panel"
-  class="ui-panel"
->
+    <div
+      id="ui-panel"
+      class="ui-panel"
+    >
+      <div id="panel-content"></div>
+    </div>
 
-  <div id="panel-content"></div>
-</div>
-
-<div
-  id="manipulated-message"
-  class="manipulated-message"
->
-  THAT'S THE BEST VERSION OF YOURSELF
-</div>
+    <div
+      id="manipulated-message"
+      class="manipulated-message"
+    >
+      THAT'S THE BEST VERSION OF YOURSELF
+    </div>
 
     <div class="face-window"></div>
 
@@ -112,7 +117,7 @@ document.querySelector('#app').innerHTML = `
 let defaultMeshImg;
 
 let appState = 'loading';
-// loading | searching | preAnalyzing | analyzing | analyzed| manipulating| manipulated 
+// loading | searching | preAnalyzing | analyzing | analyzed| manipulating| manipulated
 
 let lockedMood = null;
 let moodAnalyzed = false;
@@ -122,24 +127,57 @@ let perfectFaceAnalyzed = false;
 let faceDetectedTime = null;
 
 const FACE_DETECTION_DELAY = 2500;
-// const FACE_DETECTION_DELAY = 2500;
 
 let analysisStartTime = 0;
 const ANALYSIS_DURATION = 3500;
-// const ANALYSIS_DURATION = 3500;
 
-// bevor manipulating einsetzt
 let analyzedStartTime = 0;
 const RESULT_DISPLAY_DURATION = 6000;
-// const RESULT_DISPLAY_DURATION = 6000;
 
 let manipulationStartTime = 0;
 const MANIPULATION_DURATION = 4000;
-// const MANIPULATION_DURATION = 4000;
 
 let manipulatedStartTime = 0;
 
-function updateBrandingUI(appState, p, analyzedStartTime, manipulationStartTime, manipulatedStartTime, lockedMood) {
+let faceMissingSince = null;
+
+// Nach 6 Sekunden ohne Gesicht zurück zu searching
+const RESTART_AFTER_NO_FACE = 6000;
+
+function resetToSearching() {
+    appState = 'searching';
+
+    lockedMood = null;
+    moodAnalyzed = false;
+
+    lockedPerfectFaceScore = null;
+    perfectFaceAnalyzed = false;
+
+    faceDetectedTime = null;
+
+    analysisStartTime = 0;
+    analyzedStartTime = 0;
+    manipulationStartTime = 0;
+    manipulatedStartTime = 0;
+
+    faceMissingSince = null;
+
+    updatePanelUI({
+        appState: 'searching'
+    });
+
+    console.log('Kein Gesicht für 6 Sekunden – zurück zu searching');
+}
+
+
+function updateBrandingUI(
+    appState,
+    p,
+    analyzedStartTime,
+    manipulationStartTime,
+    manipulatedStartTime,
+    lockedMood
+) {
     const statusEl = document.querySelector('#status-message');
     const topRightEl = document.querySelector('#top-right-message');
     const manipulatedMessage = document.querySelector('#manipulated-message');
@@ -186,20 +224,32 @@ function updateBrandingUI(appState, p, analyzedStartTime, manipulationStartTime,
             0 0 180px rgba(${r},${g},${b},0.25)
         `;
         statusEl.style.color = `
-        rgb(
-        ${Math.round(255 * 0.88 + r * 0.12)},
-        ${Math.round(255 * 0.88 + g * 0.12)},
-        ${Math.round(255 * 0.88 + b * 0.12)}
-        )
+            rgb(
+                ${Math.round(255 * 0.88 + r * 0.12)},
+                ${Math.round(255 * 0.88 + g * 0.12)},
+                ${Math.round(255 * 0.88 + b * 0.12)}
+            )
         `;
     }
     if (appState === 'manipulating') {
         const elapsed = p.millis() - manipulationStartTime;
-        const progress = Math.floor(p.constrain(elapsed / MANIPULATION_DURATION, 0, 1) * 100);
-        statusEl.textContent = `${progress}% OPTIMIZATION`;
+
+        const progress = Math.floor(
+            p.constrain(
+                elapsed / MANIPULATION_DURATION,
+                0,
+                1
+            ) * 100
+        );
+
+        statusEl.textContent =
+            `${progress}% OPTIMIZATION`;
     }
+
     if (appState === 'manipulated') {
-        statusEl.textContent = 'OPTIMIZATION COMPLETE.';
+        statusEl.textContent =
+            'OPTIMIZATION COMPLETE.';
+
         if (manipulatedMessage) {
             manipulatedMessage.style.textShadow = `
                 0 0 10px rgba(0,228,49,0.8),
@@ -208,20 +258,32 @@ function updateBrandingUI(appState, p, analyzedStartTime, manipulationStartTime,
                 0 0 100px rgba(0,228,49,0.3),
                 0 0 180px rgba(0,228,49,0.1)
             `;
+
             manipulatedMessage.style.color = `
-            rgb(
-                ${Math.round(255 * 0.88 + 0 * 0.12)},
-                ${Math.round(255 * 0.88 + 228 * 0.12)},
-                ${Math.round(255 * 0.88 + 49 * 0.12)}
-            )
+                rgb(
+                    ${Math.round(255 * 0.88 + 0 * 0.12)},
+                    ${Math.round(255 * 0.88 + 228 * 0.12)},
+                    ${Math.round(255 * 0.88 + 49 * 0.12)}
+                )
             `;
         }
-        const elapsed = p.millis() - manipulatedStartTime;
-        const seconds = Math.max(0, 30 - Math.floor(elapsed / 1000));
-        topRightEl.textContent = `NEW ANALYZING IN ${seconds}s`;
+
+        const elapsed =
+            p.millis() - manipulatedStartTime;
+
+        const seconds = Math.max(
+            0,
+            30 - Math.floor(elapsed / 1000)
+        );
+
+        topRightEl.textContent =
+            `NEW ANALYZING IN ${seconds}s`;
     }
     if (manipulatedMessage) {
-        manipulatedMessage.classList.toggle('visible', appState === 'manipulated');
+        manipulatedMessage.classList.toggle(
+            'visible',
+            appState === 'manipulated'
+        );
     }
 }
 
@@ -283,41 +345,39 @@ function updatePanelUI({
     }
 
     content.innerHTML = `
-    <div class="panel-label">
-      PERFECT FACE SCORE
-    </div>
+        <div class="panel-label">
+            PERFECT FACE SCORE
+        </div>
 
-    <div class="panel-value">
-      ${perfectFaceScore}%
-    </div>
+        <div class="panel-value">
+            ${perfectFaceScore}%
+        </div>
 
-    <div class="panel-divider"></div>
+        <div class="panel-divider"></div>
 
-    <div class="panel-label">
-      DETECTED MOOD
-    </div>
+        <div class="panel-label">
+            DETECTED MOOD
+        </div>
 
-    <div class="panel-value">
-      ${moodLabel}
-    </div>
+        <div class="panel-value">
+            ${moodLabel}
+        </div>
 
-    <div class="panel-label">
-      HAPPINESS SCORE
-    </div>
+        <div class="panel-label">
+            HAPPINESS SCORE
+        </div>
 
-    <div class="panel-value">
-      ${happinessScore}%
-    </div>
+        <div class="panel-value">
+            ${happinessScore}%
+        </div>
 
-    <div class="progress-track">
-      <div
-        class="progress-fill"
-        style="
-          width:${happinessScore}%;
-        "
-      ></div>
-    </div>
-  `;
+        <div class="progress-track">
+            <div
+                class="progress-fill"
+                style="width:${happinessScore}%"
+            ></div>
+        </div>
+    `;
 }
 
 const sketch = (p) => {
@@ -363,8 +423,15 @@ const sketch = (p) => {
         p.clear();
         p.background(0);
 
-        updateBrandingUI(appState, p, analyzedStartTime, manipulationStartTime, manipulatedStartTime, lockedMood);
-        
+        updateBrandingUI(
+            appState,
+            p,
+            analyzedStartTime,
+            manipulationStartTime,
+            manipulatedStartTime,
+            lockedMood
+        );
+
         if (previousStarState !== appState) {
             triggerStarBurst();
             previousStarState = appState;
@@ -393,9 +460,31 @@ const sketch = (p) => {
             }
         });
 
+//Hier wird überprüft, ob ein Gesicht erkannt wurde. Wenn nicht, wird die Zeit seit dem letzten Erkennen eines Gesichts gemessen. 
+//Wenn diese Zeit 6 Sekunden überschreitet, wird der Zustand auf "searching" zurückgesetzt. 
+//Wenn das Gesicht wieder erkannt wird, wird der Timer zurückgesetzt. 
+
+        if (!faceDetected) {
+            if (faceMissingSince === null) {
+                faceMissingSince = p.millis();
+            }
+
+            const missingFor =
+                p.millis() - faceMissingSince;
+
+            if (missingFor >= RESTART_AFTER_NO_FACE) {
+                resetToSearching();
+                return;
+            }
+        } else {
+            faceMissingSince = null;
+        }
+
         if (!faceDetected && appState === 'searching') {
             faceDetectedTime = null;
+
             drawSearchingOverlay(p, 0);
+
             if (defaultMeshImg) {
                 drawDefaultMesh(p, defaultMeshImg, 1);
             }
@@ -409,20 +498,48 @@ const sketch = (p) => {
                 faceDetectedTime = null;
                 return;
             }
+
             if (!faceDetectedTime) {
                 faceDetectedTime = p.millis();
             }
-            const elapsedSinceDetection = p.millis() - faceDetectedTime;
-            const detectionProgress = p.constrain(elapsedSinceDetection / FACE_DETECTION_DELAY, 0, 1);
-            const transitionProgress = p.constrain(detectionProgress / 0.35, 0, 1);
-            if (elapsedSinceDetection >= FACE_DETECTION_DELAY) {
+
+            const elapsedSinceDetection =
+                p.millis() - faceDetectedTime;
+
+            const detectionProgress = p.constrain(
+                elapsedSinceDetection /
+                FACE_DETECTION_DELAY,
+                0,
+                1
+            );
+
+            const transitionProgress = p.constrain(
+                detectionProgress / 0.35,
+                0,
+                1
+            );
+
+            if (
+                elapsedSinceDetection >=
+                FACE_DETECTION_DELAY
+            ) {
                 appState = 'preAnalyzing';
                 analysisStartTime = p.millis();
             }
+
             updateStarColor(appState);
-            drawSearchingOverlay(p, detectionProgress);
+
+            drawSearchingOverlay(
+                p,
+                detectionProgress
+            );
+
             if (defaultMeshImg) {
-                drawDefaultMesh(p, defaultMeshImg, 1 - transitionProgress);
+                drawDefaultMesh(
+                    p,
+                    defaultMeshImg,
+                    1 - transitionProgress
+                );
             }
             drawScannerCorners(p);
             return;
@@ -462,7 +579,6 @@ const sketch = (p) => {
 
         // Schritt 3: echte Mood-Analyse läuft
         if (appState === 'analyzing') {
-            // drawStatus(p, 'Emotional profile wird berechnet...');
             updatePanelUI({
                 appState,
                 progress: 1,
@@ -490,58 +606,172 @@ const sketch = (p) => {
             const moodColor = getMoodColor(lockedMood);
             updatePanelUI({
                 appState,
-                perfectFaceScore: lockedPerfectFaceScore.total,
-                happinessScore: lockedMood.happyScore || 0,
-                moodLabel: lockedMood.label.toUpperCase(),
-                color: moodColor
-            });
-            updateStarColor(appState, lockedMood);
-            const elapsed = p.millis() - analyzedStartTime;
 
-            if (elapsed >= RESULT_DISPLAY_DURATION) {
+                // Falls Gesicht kurz weg ist,
+                // bleibt der Wert bei 0, bis es wieder da ist.
+                perfectFaceScore:
+                    lockedPerfectFaceScore
+                        ? lockedPerfectFaceScore.total
+                        : 0,
+
+                happinessScore:
+                    lockedMood.happyScore || 0,
+
+                moodLabel:
+                    lockedMood.label.toUpperCase(),
+
+                color:
+                    moodColor
+            });
+
+            updateStarColor(
+                appState,
+                lockedMood
+            );
+
+            const elapsed =
+                p.millis() - analyzedStartTime;
+
+            if (
+                elapsed >=
+                RESULT_DISPLAY_DURATION
+            ) {
                 appState = 'manipulating';
                 manipulationStartTime = p.millis();
-                console.log('APP STATE ANALYZED RUNS');
+
+                console.log(
+                    'APP STATE ANALYZED RUNS'
+                );
             }
             return;
         }
 
         // Schritt 5: Manipulation
         if (appState === 'manipulating') {
-            const elapsed = p.millis() - manipulationStartTime;
-            const optimizationProgress = p.constrain(elapsed / MANIPULATION_DURATION, 0, 1);
-            const currentTintColor = getManipulationTintColor(p, lockedMood, optimizationProgress);
+            const elapsed =
+                p.millis() - manipulationStartTime;
+
+            const optimizationProgress = p.constrain(
+                elapsed / MANIPULATION_DURATION,
+                0,
+                1
+            );
+
+            const currentTintColor =
+                getManipulationTintColor(
+                    p,
+                    lockedMood,
+                    optimizationProgress
+                );
+
             const faceProgress = p.constrain(
-                (optimizationProgress - 0.3) / 0.7, 0, 1);
-            if (faceProgress > 0) {
-                runManipulation(p, face, videoSize, faceProgress);
+                (optimizationProgress - 0.3) / 0.7,
+                0,
+                1
+            );
+
+            // NEU:
+            // Nur manipulieren, wenn das Gesicht gerade da ist.
+            if (face && faceProgress > 0) {
+                runManipulation(
+                    p,
+                    face,
+                    videoSize,
+                    faceProgress
+                );
             }
-            drawMoodTint(p, lockedMood, appState, currentTintColor);
-            const displayedPerfectFace = Math.round(p.lerp(lockedPerfectFaceScore.total, 100, optimizationProgress));
-            const displayedHappy = Math.round(p.lerp(lockedMood.happyScore || 0, 100, optimizationProgress));
+
+            drawMoodTint(
+                p,
+                lockedMood,
+                appState,
+                currentTintColor
+            );
+
+            const startScore =
+                lockedPerfectFaceScore
+                    ? lockedPerfectFaceScore.total
+                    : 0;
+
+            const displayedPerfectFace = Math.round(
+                p.lerp(
+                    startScore,
+                    100,
+                    optimizationProgress
+                )
+            );
+
+            const displayedHappy = Math.round(
+                p.lerp(
+                    lockedMood.happyScore || 0,
+                    100,
+                    optimizationProgress
+                )
+            );
+
             updatePanelUI({
                 appState,
-                perfectFaceScore: displayedPerfectFace,
-                happinessScore: displayedHappy,
-                moodLabel: optimizationProgress < 0.5 ? lockedMood.label.toUpperCase() : 'HAPPY',
-                color: currentTintColor
+
+                perfectFaceScore:
+                    displayedPerfectFace,
+
+                happinessScore:
+                    displayedHappy,
+
+                moodLabel:
+                    optimizationProgress < 0.5
+                        ? lockedMood.label.toUpperCase()
+                        : 'HAPPY',
+
+                color:
+                    currentTintColor
             });
-            drawManipulationSparkles(p, currentTintColor);
-            updateStarColor(appState, lockedMood, currentTintColor);
-            if (elapsed >= MANIPULATION_DURATION) {
+
+            drawManipulationSparkles(
+                p,
+                currentTintColor
+            );
+
+            updateStarColor(
+                appState,
+                lockedMood,
+                currentTintColor
+            );
+
+            if (
+                elapsed >=
+                MANIPULATION_DURATION
+            ) {
                 appState = 'manipulated';
                 manipulatedStartTime = p.millis();
-                console.log('APP STATE MANIPULATING RUNS');
+
+                console.log(
+                    'APP STATE MANIPULATING RUNS'
+                );
             }
             return;
         }
 
         // Schritt 6: Manipulated
         if (appState === 'manipulated') {
-            runManipulation(p, face, videoSize);
-            drawMoodTint(p, {
-                label: 'manipulated'
-            }, appState);
+            // NEU:
+            // Kein Fehler, wenn das Gesicht kurz weg ist.
+            if (face) {
+                runManipulation(
+                    p,
+                    face,
+                    videoSize
+                );
+            }
+
+            drawMoodTint(
+                p,
+                {
+                    label: 'manipulated'
+                },
+                appState
+            );
+
             updatePanelUI({
                 appState,
                 perfectFaceScore: 100,
