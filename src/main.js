@@ -142,7 +142,7 @@ let manipulatedStartTime = 0;
 let faceMissingSince = null;
 
 // Nach 6 Sekunden ohne Gesicht zurück zu searching
-const RESTART_AFTER_NO_FACE = 6000;
+const RESTART_AFTER_NO_FACE = 45000;
 
 function resetToSearching() {
     appState = 'searching';
@@ -461,8 +461,6 @@ const sketch = (p) => {
         });
 
 //Hier wird überprüft, ob ein Gesicht erkannt wurde. Wenn nicht, wird die Zeit seit dem letzten Erkennen eines Gesichts gemessen. 
-//Wenn diese Zeit 6 Sekunden überschreitet, wird der Zustand auf "searching" zurückgesetzt. 
-//Wenn das Gesicht wieder erkannt wird, wird der Timer zurückgesetzt. 
 
         if (!faceDetected) {
             if (faceMissingSince === null) {
@@ -472,7 +470,11 @@ const sketch = (p) => {
             const missingFor =
                 p.millis() - faceMissingSince;
 
-            if (missingFor >= RESTART_AFTER_NO_FACE) {
+            // Nur nach Abschluss der Optimierung wegen fehlendem Gesicht resetten.
+            if (
+                appState === 'manipulated' &&
+                missingFor >= RESTART_AFTER_NO_FACE
+            ) {
                 resetToSearching();
                 return;
             }
@@ -565,11 +567,52 @@ const sketch = (p) => {
             if (progress >= 1 && !moodAnalyzed && isMoodDetectionReady()) {
                 appState = 'analyzing';
                 moodAnalyzed = true;
-                detectMoodOnce(video).then((mood) => {
-                    lockedMood = mood;
+                detectMoodOnce(video)
+                .then((mood) => {
+                    const moodNotRecognized =
+                        !mood ||
+                        !mood.label ||
+                        mood.label.toLowerCase() === 'unknown';
+            
+                    if (moodNotRecognized) {
+                        console.log("Kein Mood erkannt. Setze auf 'neutral'.");
+            
+                        lockedMood = {
+                            label: 'NEUTRAL',
+                            happyScore: 50,
+                            color: {
+                                r: 104,
+                                g: 93,
+                                b: 255
+                            }
+                        };
+                    } else {
+                        lockedMood = mood;
+                    }
+            
                     appState = 'analyzed';
                     analyzedStartTime = p.millis();
+            
                     console.log('Mood locked:', lockedMood);
+                })
+                .catch((error) => {
+                    console.warn(
+                        "Mood detection Fehler. Setze auf 'neutral'.",
+                        error
+                    );
+            
+                    lockedMood = {
+                        label: 'NEUTRAL',
+                        happyScore: 50,
+                        color: {
+                            r: 104,
+                            g: 93,
+                            b: 255
+                        }
+                    };
+            
+                    appState = 'analyzed';
+                    analyzedStartTime = p.millis();
                 });
                 updateStarColor(appState);
             }
@@ -687,19 +730,18 @@ const sketch = (p) => {
                 currentTintColor
             );
 
-            const startScore =
-                lockedPerfectFaceScore
-                    ? lockedPerfectFaceScore.total
-                    : 0;
-
+            const startPerfectFaceScore =
+            lockedPerfectFaceScore
+                ? lockedPerfectFaceScore.total
+                : 0;
+        
             const displayedPerfectFace = Math.round(
                 p.lerp(
-                    startScore,
+                    startPerfectFaceScore,
                     100,
                     optimizationProgress
                 )
             );
-
             const displayedHappy = Math.round(
                 p.lerp(
                     lockedMood.happyScore || 0,
