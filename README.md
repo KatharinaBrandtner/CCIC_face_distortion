@@ -60,7 +60,7 @@ Das Gesicht wird schrittweise verändert:
 
 - glattere Haut
 - größere Augen
-- symmetrischere Gesichtszüge
+- stärkere Gesichtsfarben (blush, Lippen)
 - angehobene Mundwinkel
 - permanentes Lächeln
 
