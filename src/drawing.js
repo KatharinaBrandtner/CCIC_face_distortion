@@ -4,7 +4,6 @@
 // shouldShowMoodVisuals(appState, mood) - überprüft, ob die Mood-Visuals basierend auf dem App-Zustand und der Stimmung angezeigt werden sollten
 // getInterfaceColor(mood, appState) - gibt die Farbe für die Benutzeroberfläche basierend auf der Stimmung und dem App-Zustand zurück
 // drawFacePoints(p, face, videoSize, alpha) - zeichnet die Gesichtspunkte auf der Leinwand basierend auf den gegebenen Gesichtsdaten und der Transparenz
-// drawStatus(p, text, mood, appState) - zeichnet den Statustext auf der Leinwand mit der entsprechenden Farbe basierend auf der Stimmung und dem App-Zustand
 // getFaceWindowCutout(p) - berechnet die Position und Größe des Gesichtsfensters auf der Leinwand
 // getMoodVisuals(mood) - gibt die visuellen Eigenschaften (Label und Farbe) basierend auf der Stimmung zurück
 // drawMoodTint(p, mood, appState, overrideColor) - zeichnet einen Mood-Tint-Effekt auf der Leinwand basierend auf der Stimmung und dem App-Zustand
@@ -108,16 +107,6 @@ export function drawFacePoints(
 
         p.circle(x, y, 3);
     }
-}
-
-export function drawStatus(p, text, mood, appState) {
-    const [r, g, b] = getInterfaceColor(mood, appState);
-
-    p.noStroke();
-    p.fill(r, g, b);
-    p.textSize(18);
-    p.textAlign(p.LEFT, p.BASELINE);
-    p.text(text, 24, p.height - 32);
 }
 export function getFaceWindowCutout(p) {
     const faceWindow = document.querySelector('.face-window');

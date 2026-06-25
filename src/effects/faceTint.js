@@ -1,3 +1,5 @@
+import { MAKEUP_CONFIG } from "../other/faceColorConfig.js";
+
 export function drawBlush(
     p,
     points,
@@ -6,7 +8,7 @@ export function drawBlush(
     if (!points) return;
 
     const blushAlpha =
-    70 * progress;
+    MAKEUP_CONFIG.blush.alpha * progress;
 
     // Wangenpunkte aus FaceMesh
     const leftOuter = points[234];
@@ -45,35 +47,30 @@ export function drawBlush(
 
     const faceWidth = Math.abs(rightOuter.x - leftOuter.x);
 
-    const blushW = faceWidth * 0.18;
-    const blushH = faceWidth * 0.10;
+    const blushW =
+    faceWidth * MAKEUP_CONFIG.blush.width;
+
+    const blushH =
+    faceWidth * MAKEUP_CONFIG.blush.height;
 
     p.push();
     p.noStroke();
 
-    // weichere, kompaktere Fläche
-    p.drawingContext.filter = "blur(18px)";
-    p.fill(255, 45, 95, blushAlpha);
+    p.drawingContext.filter =
+    `blur(${MAKEUP_CONFIG.blush.blur}px)`;
+
+    p.fill(
+    MAKEUP_CONFIG.blush.color.r,
+    MAKEUP_CONFIG.blush.color.g,
+    MAKEUP_CONFIG.blush.color.b,
+    blushAlpha
+);
 
     p.ellipse(leftCheek.x, leftCheek.y, blushW, blushH);
     p.ellipse(rightCheek.x, rightCheek.y, blushW, blushH);
 
     p.drawingContext.filter = "none";
     p.pop();
-}
-
-function lerpPoint(a, b, t) {
-    return {
-        x: a.x + (b.x - a.x) * t,
-        y: a.y + (b.y - a.y) * t,
-    };
-}
-
-function scaleFromCenter(pt, center, scaleX, scaleY) {
-    return {
-        x: center.x + (pt.x - center.x) * scaleX,
-        y: center.y + (pt.y - center.y) * scaleY,
-    };
 }
 
 export function enhanceLipColor(p, points, alpha = 30) {
@@ -113,7 +110,12 @@ export function enhanceLipColor(p, points, alpha = 30) {
         p.drawingContext.filter = "none";
     
         // leicht dunkles Rot, damit die vorhandene Struktur noch sichtbar bleibt
-        p.fill(185, 30, 50, alpha);
+        p.fill(
+            MAKEUP_CONFIG.lipstick.color.r,
+            MAKEUP_CONFIG.lipstick.color.g,
+            MAKEUP_CONFIG.lipstick.color.b,
+            MAKEUP_CONFIG.lipstick.alpha
+        );
     
         // Oberlippe als eine saubere Fläche
         p.beginShape();
