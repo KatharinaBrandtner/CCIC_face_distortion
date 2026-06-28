@@ -1,6 +1,6 @@
 # ✨ PerfectYou™
 
-**Become the Best Version of Yourself**
+**BE THE BEST VERSION OF YOURSELF**
 
 PerfectYou™ ist eine interaktive Installation in Form eines digitalen Spiegels.  
 Das Projekt inszeniert ein fiktives KI-Startup, das verspricht, Schönheit, Glück und persönliches Potenzial anhand des Gesichts zu analysieren und zu optimieren.
@@ -11,7 +11,7 @@ Die Installation hinterfragt den gesellschaftlichen Drang zur Selbstoptimierung 
 ## Konzept
 
 Besucher*innen stellen sich vor eine Kamera und werden von einem vermeintlich intelligenten System analysiert.  
-Das Interface zeigt FaceMesh, Scan-Animationen und verschiedene Scores wie **Happiness**, **Symmetry** oder **Perfect Face Score**.
+Das Interface zeigt FaceMesh, Scan-Animationen und verschiedene Scores wie **Happiness** oder **Perfect Face Score**.
 
 Während die KI das Gesicht scheinbar optimiert, entfernt sich die Darstellung immer weiter vom ursprünglichen Aussehen. Am Ende entsteht eine künstliche, überperfekte und unmenschliche Version der Person.
 
@@ -48,7 +48,7 @@ Das System zeigt verschiedene Kennzahlen:
 
 - 🧴 glattere Haut
 - 👁️ größere Augen
-- 🪞 stärkere Gesichtsfarben (blush, Lippen)
+- 🪞 stärkere Gesichtsfarben (Blush, Lippen)
 - 🙂 angehobene Mundwinkel
 - 😁 permanentes Lächeln
 
@@ -60,7 +60,7 @@ Das Gesicht wird schrittweise verändert:
 
 - glattere Haut
 - größere Augen
-- stärkere Gesichtsfarben (blush, Lippen)
+- stärkere Gesichtsfarben (Blush, Lippen)
 - angehobene Mundwinkel
 - permanentes Lächeln
 
@@ -68,7 +68,7 @@ Am Ende stehen alle Werte auf 100 %.
 Das System meldet:
 
 **`OPTIMIZATION COMPLETE`**  
-**`YOU ARE NOW THE BEST VERSION OF YOURSELF`**
+**`THAT'S THE BEST VERSION OF YOURSELF`**
 
 
 ## Technische Umsetzung
