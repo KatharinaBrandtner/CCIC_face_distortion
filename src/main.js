@@ -1,5 +1,5 @@
 // in dieser datei passieren die stages bzw der ablauf von loading bis zu manipulated
-// satges:
+// stages:
 // loading - hier wird die kamera und die modelle geladen
 // searching - hier wird nach einem gesicht gesucht und die kamera wird gespiegelt angezeigt
 // preAnalyzing - hier wird ein fake ladebalken angezeigt während die analyse vorbereitet wird
