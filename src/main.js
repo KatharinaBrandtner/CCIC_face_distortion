@@ -66,7 +66,7 @@ document.querySelector('#app').innerHTML = `
 
       <div class="brand-title">
         <span>PERFECT</span>
-        <span>YOU</span>
+        <span>YOU<span class="brand-tm">TM</span></span>
       </div>
 
       <div
