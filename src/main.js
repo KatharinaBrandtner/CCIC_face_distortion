@@ -142,7 +142,7 @@ let manipulatedStartTime = 0;
 let faceMissingSince = null;
 
 // Nach 6 Sekunden ohne Gesicht zurück zu searching
-const RESTART_AFTER_NO_FACE = 45000;
+const RESTART_AFTER_NO_FACE = 4500;
 
 function resetToSearching() {
     appState = 'searching';
