@@ -169,15 +169,32 @@ export function warpTriangle(
   const dstRect = cv.boundingRect(dstTriMat);
 
   if (
-    srcRect.width <= 0 ||
-    srcRect.height <= 0 ||
-    dstRect.width <= 0 ||
-    dstRect.height <= 0
-  ) {
+    srcRect.x < 0 ||
+    srcRect.y < 0 ||
+    dstRect.x < 0 ||
+    dstRect.y < 0 ||
+
+    srcRect.x + srcRect.width > srcMat.cols ||
+    srcRect.y + srcRect.height > srcMat.rows ||
+
+    dstRect.x + dstRect.width > dstMat.cols ||
+    dstRect.y + dstRect.height > dstMat.rows
+) {
     srcTriMat.delete();
     dstTriMat.delete();
     return;
-  }
+}
+
+  // if (
+  //   srcRect.width <= 0 ||
+  //   srcRect.height <= 0 ||
+  //   dstRect.width <= 0 ||
+  //   dstRect.height <= 0
+  // ) {
+  //   srcTriMat.delete();
+  //   dstTriMat.delete();
+  //   return;
+  // }
 
   const srcROI = srcMat.roi(srcRect);
 

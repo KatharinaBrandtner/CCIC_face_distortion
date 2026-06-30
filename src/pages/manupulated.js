@@ -51,6 +51,10 @@ export function runManipulation(
     videoSize,
     progress = 1
 ) {
+    if (!face || !face.keypoints) {
+        return;
+    }
+
     p.push();
     p.translate(p.width, 0);
     p.scale(-1, 1);
@@ -297,7 +301,9 @@ export function runManipulation(
         cv.imshow(p.canvas, dstMat);
 
     } catch (error) {
-        console.error("Error in stage4:", error);
+        // console.error("Error in stage4:", error);
+        console.error(error);
+        console.trace();
     } finally {
         srcMat.delete();
         dstMat.delete();

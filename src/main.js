@@ -471,7 +471,8 @@ const sketch = (p) => {
                 p.millis() - faceMissingSince;
 
             // Nur nach Abschluss der Optimierung wegen fehlendem Gesicht resetten.
-            if (
+            if ( 
+                appState === 'manipulating' ||
                 appState === 'manipulated' &&
                 missingFor >= RESTART_AFTER_NO_FACE
             ) {
@@ -714,12 +715,20 @@ const sketch = (p) => {
             );
 
             // Nur manipulieren, wenn das Gesicht gerade da ist.
-            if (face && faceProgress > 0) {
+            // if (face && faceProgress > 0) {
+            //     runManipulation(
+            //         p,
+            //         face,
+            //         videoSize,
+            //         faceProgress
+            //     );
+            // }
+
+            if (face) {
                 runManipulation(
                     p,
                     face,
-                    videoSize,
-                    faceProgress
+                    videoSize
                 );
             }
 
