@@ -189,10 +189,10 @@ function clamp(value, min, max) {
 
 // hohe Werte überproportional bestrafen
 const manipulatedTotal =
-  Math.pow(rawTotal / 100, 1.8) * 45;
+  Math.pow(rawTotal / 100, 1.8) * 61;
 
 return {
-  total: Math.round(clamp(manipulatedTotal, 0, 45)),
+  total: Math.round(clamp(manipulatedTotal, 0, 61)),
   symmetry,
   smileCompliance,
   attentionAlignment,

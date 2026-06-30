@@ -31,18 +31,14 @@ function distortHighHappiness(value) {
       const randomFactor = Math.random();
   
       if (randomFactor < 0.33) {
-        // Bereich 60–70%
         return 0.35 + Math.random() * 0.10;
       } else if (randomFactor < 0.66) {
-        // Bereich 65–75%
         return 0.4 + Math.random() * 0.10;
       } else {
-        // Bereich 70–80%
         return 0.45 + Math.random() * 0.10;
       }
     }
   
-    // Alles unter 85% bleibt original
     return value;
   }
 

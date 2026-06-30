@@ -13,7 +13,7 @@ export const MAKEUP_CONFIG = {
     },
 
     lipstick: {
-        alpha: 30, // hier stellt man die stärke ein
+        alpha: 40, // hier stellt man die stärke ein
 
         color: {
             r: 185,

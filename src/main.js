@@ -715,22 +715,16 @@ const sketch = (p) => {
             );
 
             // Nur manipulieren, wenn das Gesicht gerade da ist.
-            // if (face && faceProgress > 0) {
-            //     runManipulation(
-            //         p,
-            //         face,
-            //         videoSize,
-            //         faceProgress
-            //     );
-            // }
-
-            if (face) {
-                runManipulation(
-                    p,
-                    face,
-                    videoSize
+            if (face && faceProgress > 0) {
+                 runManipulation(
+                     p,
+                     face,
+                    videoSize,
+                    faceProgress
                 );
             }
+
+            
 
             drawMoodTint(
                 p,

@@ -105,7 +105,7 @@ export function drawFacePoints(
             (point.y / videoSize.height) *
             rect.h;
 
-        p.circle(x, y, 3);
+        p.circle(x, y, 1.5);
     }
 }
 export function getFaceWindowCutout(p) {
