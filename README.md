@@ -113,7 +113,7 @@ npm run build
 ```
 #### 4. Auf einem 16- oder 27-Zoll-Bildschirm testen
 
-Für die Darstellung im hochkantigen Chrome-Format muss die passende Bildschirmgröße eingestellt werden.
+Für die Darstellung im hochkantigen Browser-Format muss die passende Bildschirmgröße eingestellt werden.
 Dafür in main.js folgende Anpassungen treffen: 
 - Ändere die STYLES-Imports auf die gewünschte Zollgröße.
 - Passe in der draw()-Funktion die Scanner-Ecken an.
