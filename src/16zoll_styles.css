@@ -1,0 +1,423 @@
+:root {
+  --face-width: 70vw; /* Schmaler, da Hochformat */
+  --face-height: 50vh; /* Etwas kleiner, um Platz zu lassen */
+  --face-top: 50%; /* Zentriert im Hochformat */
+}
+
+/* .playfair-display-<uniquifier> {
+  font-family: "Playfair Display", serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+}
+
+.urbanist-<uniquifier> {
+  font-family: "Urbanist", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: <weight>;
+  font-style: normal;
+} */
+
+body {
+  margin: 0;
+  background: black;
+  color: white;
+  font-family: "Urbanist", sans-serif;
+  overflow: hidden;
+}
+
+.screen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: black;
+}
+
+/* p5 Canvas */
+#p5-container {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+#p5-container canvas {
+  display: block;
+}
+
+/* NICHT benutzen, sonst verdeckt es wieder alles */
+.dark-overlay {
+  display: none;
+}
+
+/* styling tecte */
+.brand-ui {
+  position: absolute;
+
+  top: 28px;
+  left: 28px;
+
+  z-index: 50;
+
+  display: flex;
+  flex-direction: column;
+
+  pointer-events: none;
+}
+
+.brand-star {
+  width: 7vw;
+  height: 7vw;
+
+  clip-path: polygon(
+    50% 0%,
+    58% 42%,
+    100% 50%,
+    58% 58%,
+    50% 100%,
+    42% 58%,
+    0% 50%,
+    42% 42%
+  );
+
+  background: rgb(0, 228, 49);
+
+  transition: background-color 0.15s ease, transform 0.25s ease;
+
+  filter: drop-shadow(0 0 10px rgba(0, 228, 49, 0.8))
+    drop-shadow(0 0 20px rgba(0, 228, 49, 0.6));
+
+  margin-bottom: 2px;
+}
+
+.brand-title {
+  display: flex;
+  flex-direction: column;
+
+  color: white;
+  font-family: "Playfair Display", serif;
+  font-size: 10vw;
+
+  line-height: 1;
+
+  /* font-weight: 100; */
+
+  letter-spacing: -0.01em;
+}
+.brand-tm {
+  font-size: 0.25em;
+  vertical-align: top;
+  margin-left: 0.2em;
+  letter-spacing: 0.03em;
+  line-height: 1.4em !important;
+}
+.status-message {
+  margin-top: 1.2vh;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 3.2vw;
+
+  font-weight: 600;
+
+  letter-spacing: 0.03em;
+
+  text-transform: uppercase;
+}
+.manipulated-message {
+  position: absolute;
+
+  z-index: 10000;
+
+  opacity: 0;
+
+  transition: opacity 0.4s ease;
+
+  color: white;
+
+  font-family: "Urbanist", sans-serif;
+
+  text-transform: uppercase;
+
+  line-height: 1.05;
+
+  pointer-events: none;
+
+  text-shadow: 0 0 24px rgba(255, 255, 255, 0.08);
+
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  bottom: 36.7vh;
+
+  white-space: nowrap;
+
+  font-size: 3.2vw;
+
+  font-weight: 600;
+
+  letter-spacing: 0.02em;
+
+  text-align: center;
+
+  transition: opacity 0.8s ease;
+}
+
+.manipulated-message.visible {
+  opacity: 1;
+}
+
+.top-right-message {
+  position: fixed;
+
+  top: 48px;
+  right: 48px;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  font-weight: 600;
+
+  letter-spacing: 0.05em;
+
+  font-size: 2.5vw;
+
+  text-transform: uppercase;
+}
+.searching-prompt {
+  position: absolute;
+
+  left: 50%;
+  top: 72%;
+
+  transform: translateX(-50%);
+
+  z-index: 30;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  font-family: "Urbanist", sans-serif;
+
+  font-size: 5vw;
+
+  font-weight: 600;
+
+  letter-spacing: 0.03em;
+
+  text-transform: uppercase;
+
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+
+  transition: opacity 0.4s ease;
+
+  text-align: center;
+}
+
+.searching-star {
+  position: absolute;
+
+  left: 50%;
+  top: 82.5%;
+  margin-top: 10px;
+
+  transform: translateX(-50%);
+
+  width: 140px;
+
+  height: auto;
+
+  z-index: 30;
+
+  pointer-events: none;
+
+  opacity: 0.95;
+
+  filter: blur(1.5px);
+}
+
+/* =========================
+   PERFECT YOU PANEL
+========================= */
+
+.ui-panel {
+  position: absolute;
+  z-index: 9999;
+
+  left: 50%;
+  bottom: 28px;
+
+  transform: translateX(-50%);
+
+  width: min(85vw, 980px);
+  max-height: 250px;
+
+  padding: 30px;
+
+  border-radius: 24px;
+
+  background: linear-gradient(
+    180deg,
+    rgba(20, 20, 20, 0.35),
+    rgba(10, 10, 10, 0.55)
+  );
+
+  backdrop-filter: blur(24px);
+
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition: opacity 0.4s ease, border-color 0.4s ease;
+
+  color: white;
+  font-family: "Urbanist", sans-serif;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+.ui-panel.visible {
+  opacity: 1;
+}
+
+.ui-panel::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 24px;
+  right: 24px;
+
+  height: 1px;
+
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+
+  opacity: 0.5;
+}
+
+/* =========================
+   PRE ANALYZING TEXT
+========================= */
+
+#panel-content {
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+
+  padding-bottom: 20px;
+}
+
+.panel-row {
+  font-size: 25px;
+
+  font-weight: 500;
+
+  letter-spacing: 0.05em;
+
+  color: rgba(255, 255, 255, 0.82);
+
+  margin-bottom: 20px;
+}
+
+/* =========================
+   LABELS
+========================= */
+
+.panel-label {
+  font-size: 2.2vw;
+
+  letter-spacing: 0.14em;
+
+  font-weight: 500;
+
+  text-transform: uppercase;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  margin-bottom: 5px;
+}
+
+/* =========================
+   VALUES
+========================= */
+
+.panel-value {
+  font-size: 5.2vw;
+
+  font-weight: 700;
+
+  line-height: 0.9;
+
+  margin-bottom: 25px;
+}
+/* =========================
+   DIVIDER
+========================= */
+
+.panel-divider {
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.15),
+    transparent
+  );
+
+  margin: -15px 0 15px;
+}
+
+/* =========================
+   PROGRESS TRACK
+========================= */
+
+.progress-track {
+  position: absolute;
+
+  left: 30px;
+  right: 30px;
+
+  bottom: 40px;
+
+  height: 10px;
+
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* =========================
+   PROGRESS FILL
+========================= */
+
+.progress-fill {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: var(--accent);
+
+  box-shadow: 0 0 10px var(--accent), 0 0 24px var(--accent);
+
+  transition: width 0.25s linear, background 0.3s ease;
+}
