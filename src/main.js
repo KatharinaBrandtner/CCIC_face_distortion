@@ -10,7 +10,7 @@
 
 
 // um von 27 auf 16 zoll zu wechseln, müssen die STYLES imports angepasst werden, 
-// sowie die drawScannerCorners funktion in der draw funktion (Zeile 504 und 557)
+// sowie die drawScannerCorners funktion in der draw funktion (Zeile 501 und 554)
 
 // import './27zoll_styles.css';
 import './16zoll_styles.css';
@@ -498,7 +498,7 @@ const sketch = (p) => {
             if (defaultMeshImg) {
                 drawDefaultMesh(p, defaultMeshImg, 1);
             }
-           zoll16_drawScannerCorners(p);
+           zoll16_drawScannerCorners(p); // hier anpassen für andere zollgröße : zoll16_drawScannerCorners(p) oder zoll27_drawScannerCorners(p)
             return;
         }
 
@@ -551,7 +551,7 @@ const sketch = (p) => {
                     1 - transitionProgress
                 );
             }
-            zoll16_drawScannerCorners(p);
+            zoll16_drawScannerCorners(p); // hier anpassen für andere zollgröße : zoll16_drawScannerCorners(p) oder zoll27_drawScannerCorners(p)
             return;
         }
 
