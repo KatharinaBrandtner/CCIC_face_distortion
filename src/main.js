@@ -8,7 +8,13 @@
 // manipulating - hier wird die manipulation durchgeführt und die funkeleffekte werden angezeigt (maipulation wird ab 25% der Zeit durchgeführt, damit die manipulation nicht zu abrupt ist)
 // manipulated - hier werden die finalen ergebnisse der manipulation angezeigt und ein countdown für die nächste analyse gestartet
 
-import './style.css';
+
+// um von 27 auf 16 zoll zu wechseln, müssen die STYLES imports angepasst werden, 
+// sowie die drawScannerCorners funktion in der draw funktion (Zeile 504 und 557)
+
+// import './27zoll_styles.css';
+import './16zoll_styles.css';
+
 import p5 from 'p5';
 
 import {
@@ -34,7 +40,8 @@ import {
     updateStarColor,
     triggerStarBurst,
     drawSearchingOverlay,
-    drawScannerCorners,
+    zoll16_drawScannerCorners,
+    zoll27_drawScannerCorners
 } from './drawing.js';
 
 import {
@@ -491,7 +498,7 @@ const sketch = (p) => {
             if (defaultMeshImg) {
                 drawDefaultMesh(p, defaultMeshImg, 1);
             }
-            drawScannerCorners(p);
+           zoll16_drawScannerCorners(p);
             return;
         }
 
@@ -544,7 +551,7 @@ const sketch = (p) => {
                     1 - transitionProgress
                 );
             }
-            drawScannerCorners(p);
+            zoll16_drawScannerCorners(p);
             return;
         }
 
@@ -711,6 +718,7 @@ const sketch = (p) => {
             const faceProgress = p.constrain(
                 (optimizationProgress - 0.3) / 0.7,
                 0,
+          
                 1
             );
 

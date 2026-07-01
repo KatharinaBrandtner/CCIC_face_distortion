@@ -623,7 +623,85 @@ export function drawFakeFaceMesh(p) {
     p.pop();
 }
 
-export function drawScannerCorners(p) {
+export function zoll16_drawScannerCorners(p) {
+
+    const size = 400;
+
+    const cx = p.width / 2;
+    const cy = p.height * 0.45;
+
+    const x =
+        cx - size / 2;
+
+    const y =
+        cy - size / 2;
+
+    const l = 28;
+
+    p.push();
+
+    p.strokeWeight(3);
+
+    p.stroke(
+        255,
+        255,
+        255,
+        220
+    );
+
+    p.line(x, y, x + l, y);
+    p.line(x, y, x, y + l);
+
+
+
+    p.line(
+        x,
+        y + size,
+        x + l,
+        y + size
+    );
+
+    p.line(
+        x,
+        y + size,
+        x,
+        y + size - l
+    );
+
+
+
+    p.line(
+        x + size,
+        y,
+        x + size - l,
+        y
+    );
+
+    p.line(
+        x + size,
+        y,
+        x + size,
+        y + l
+    );
+
+    p.line(
+        x + size,
+        y + size,
+        x + size - l,
+        y + size
+    );
+
+    p.line(
+        x + size,
+        y + size,
+        x + size,
+        y + size - l
+    );
+
+    p.pop();
+}
+
+export function zoll27_drawScannerCorners(p) {
 
     const size = 700;
 
