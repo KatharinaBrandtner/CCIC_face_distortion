@@ -111,6 +111,17 @@ npm run dev
 ```bash
 npm run build
 ```
+#### 4. Auf einem 16- oder 27-Zoll-Bildschirm testen
+
+Für die Darstellung im hochkantigen Chrome-Format muss die passende Bildschirmgröße eingestellt werden.
+Dafür in main.js folgende Anpassungen treffen: 
+- Ändere die STYLES-Imports auf die gewünschte Zollgröße.
+- Passe in der draw()-Funktion die Scanner-Ecken an.
+
+  Zeile 501 und 554:
+    - Für 16 Zoll: zoll16_drawScannerCorners(p)
+    - Für 27 Zoll: zoll27_drawScannerCorners(p)
+
 ## ⚠️ Hinweis
 PerfectYou™ ist kein echtes Analyse- oder Bewertungssystem.
 Alle Scores und Optimierungen sind Teil einer künstlerischen Inszenierung.
