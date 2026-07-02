@@ -394,7 +394,7 @@ const sketch = (p) => {
         canvas.parent('p5-container');
         p.pixelDensity(1);
         appState = 'loading';
-        await setupFaceTracking();
+        await setupFaceTracking(p.width, p.height);
         await setupMoodDetection();
         appState = 'searching';
     };
